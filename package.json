@@ -1,0 +1,20 @@
+{
+  "name": "shiftmate",
+  "version": "0.1.0",
+  "description": "AI co-pilot for the Learning Support Tutor's shift: mark once, update three sheets; triage WeChat in English and Chinese; auto-build the daily report.",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/",
+    "build:gas": "node scripts/build-apps-script.js",
+    "screenshots": "node scripts/screenshots.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0"
+  }
+}

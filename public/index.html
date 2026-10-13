@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShiftMate</title>
+  <meta name="description" content="AI co-pilot for the Learning Support Tutor's shift">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312305a'/%3E%3Cpath d='M9 17l4 4 10-10' stroke='%23f2b33d' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/briefing" aria-label="ShiftMate home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 17l4 4 10-10" stroke="var(--accent)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="brand-text"><strong>ShiftMate</strong><small id="shift-label">Learning Support Tutor</small></span>
+    </a>
+    <div class="topbar-right">
+      <span id="ai-pill" class="pill" title="">AI</span>
+      <button class="btn btn-ghost btn-sm" data-global="reset" title="Reload the demo data">Reset demo</button>
+    </div>
+  </header>
+  <div class="shell">
+    <nav class="sidenav" id="nav" aria-label="Shift timeline"></nav>
+    <main id="main" tabindex="-1"><div class="loading">Loading...</div></main>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <dialog id="modal" class="modal"></dialog>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
