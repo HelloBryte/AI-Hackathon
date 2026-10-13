@@ -36,6 +36,7 @@ function listItem(app, m, active) {
     <div class="preview">${m.text}</div>
     <div class="row" style="margin-top:6px">
       <span class="chip ${tone}">${label}</span>
+      ${m.triage ? html`<span class="chip">${app.data.constants.intentLabels[m.triage.primary]}</span>` : ''}
       ${langChip(m.lang)}
       ${local.busy.has(m.id) ? html`<span class="spinner" aria-label="Drafting"></span>` : ''}
       ${urgent ? html`<span class="chip tone-bad">Today</span>` : ''}
@@ -177,8 +178,18 @@ async function triage(app, id, body = {}) {
   await app.refresh();
 }
 
+let shownId = null;
+
 export function mount(root, app, params) {
   const id = selectedId(app, params);
+  // A different message: start its detail at the top of the screen.
+  if (shownId !== id) {
+    shownId = id;
+    window.scrollTo(0, 0);
+  }
+  const active = root.querySelector('.msg-item.active');
+  const list = root.querySelector('.msg-list');
+  if (active && list) list.scrollTop = Math.max(0, active.offsetTop - list.clientHeight / 3);
   const m = app.data.state.inbox.find((x) => x.id === id);
   if (m && !m.triage && m.status !== 'sent' && !local.busy.has(id)) triage(app, id);
 }

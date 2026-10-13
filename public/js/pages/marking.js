@@ -143,9 +143,22 @@ function pad(app) {
   </section>`;
 }
 
-function exhibitBlocks(app, plan, test) {
-  const changed = plan.exhibit2.changes.filter((c) => c.changed);
-  const same = plan.exhibit2.changes.filter((c) => !c.changed);
+function diffRow(app, c) {
+  const title = c.title || pointTitle(app, c.point);
+  return html`<div class="diff-row ${c.changed ? '' : 'unchanged'}">
+    <span class="mono">${c.point}</span>
+    <span class="dr-title" title="${title}">${title}</span>
+    <span class="dr-chips">${masteryChip(c.before)}<span class="arrow">→</span>${masteryChip(c.after)}</span>
+    <span class="dr-reason">${c.evidence.map((e) => `Q${e.q}: ${e.reason}`).join(' · ')}</span>
+  </div>`;
+}
+
+function exhibitBlocks(app, plan, test, heat) {
+  // Show the rows that carry the W / C / blank story; fold the routine ones.
+  const notable = plan.exhibit2.changes.filter((c) => c.evidence.some((e) => e.outcome !== 'DONE'));
+  const routine = plan.exhibit2.changes.filter((c) => !notable.includes(c));
+  const routineChanged = routine.filter((c) => c.changed);
+  const changedCount = plan.exhibit2.changes.filter((c) => c.changed).length;
   const sb = plan.exhibit2.summaryBefore;
   const sa = plan.exhibit2.summaryAfter;
   return html`
@@ -157,15 +170,12 @@ function exhibitBlocks(app, plan, test) {
       </div>
     </div>
     <div class="card" style="box-shadow:none;padding:12px;margin-top:8px">
-      <div class="row-between"><strong><span class="exhibit-tag">Exhibit 2</span> Progress Sheet</strong><span class="card-sub">${plural(changed.length, 'point')} change</span></div>
-      <div style="margin-top:6px">
-        ${changed.map((c) => html`<div class="diff-row">
-          <span class="mono">${c.point}</span>
-          <span><span style="font-size:12.5px">${c.title}</span><br><span class="faint" style="font-size:12px">${c.evidence.map((e) => `Q${e.q}: ${e.reason}`).join(' · ')}</span></span>
-          <span>${masteryChip(c.before)}<span class="arrow">→</span>${masteryChip(c.after)}</span>
-        </div>`)}
-        ${same.length ? html`<details><summary>${plural(same.length, 'point')} unchanged</summary>
-          ${same.map((c) => html`<div class="diff-row unchanged"><span class="mono">${c.point}</span><span style="font-size:12.5px">${c.evidence.map((e) => `Q${e.q}: ${e.reason}`).join(' · ')}</span><span>${masteryChip(c.after)}</span></div>`)}
+      <div class="row-between"><strong><span class="exhibit-tag">Exhibit 2</span> Progress Sheet</strong><span class="card-sub">${plural(changedCount, 'point')} change</span></div>
+      ${miniHeat(heat)}
+      <div style="margin-top:8px">
+        ${notable.map((c) => diffRow(app, c))}
+        ${routine.length ? html`<details><summary>${routineChanged.length ? `${plural(routineChanged.length, 'more point')} answered correctly → Mastered` : `${plural(routine.length, 'point')} answered correctly`}${routine.length > routineChanged.length && routineChanged.length ? `, ${routine.length - routineChanged.length} already mastered` : ''}</summary>
+          ${routine.map((c) => diffRow(app, c))}
         </details>` : ''}
       </div>
       ${sb && sa ? html`<div class="card-sub" style="margin-top:6px">Mastered in covered points: ${sb.masteredOfCoveredPct}% → <strong>${sa.masteredOfCoveredPct}%</strong> · course covered ${sb.coveredPct}% → ${sa.coveredPct}%</div>` : ''}
@@ -204,6 +214,31 @@ function decisionBlock(app, plan, test) {
       <span>Add ${plan.suggestion.gapPoints.join(', ')} to the Q&A list for the exam review</span></label>` : ''}`;
 }
 
+function summaryStrip(plan) {
+  const n = (o) => plan.exhibit1.filter((r) => r.outcome === o).length;
+  const w = n('W');
+  const c = n('C');
+  const b = n('BLANK');
+  return html`<div class="mk-strip">
+    <span class="chip tone-ok">✓ ${n('DONE')} correct</span>
+    ${w ? html`<span class="chip tone-bad">W ${w} wrong: knowledge gap, mastery down</span>` : ''}
+    ${c ? html`<span class="chip tone-warn">C ${c} careless: mastery kept</span>` : ''}
+    ${b ? html`<span class="chip">— ${b} blank: your call</span>` : ''}
+  </div>`;
+}
+
+function miniHeat(heat) {
+  if (!heat || !heat.length) return '';
+  const cols = `grid-template-columns:repeat(${heat.length},minmax(0,1fr))`;
+  const first = heat[0].id;
+  const last = heat[heat.length - 1].id;
+  return html`<div class="mini-heat" role="img" aria-label="Progress Sheet before and after">
+    <div class="mh-row"><span></span><div class="row-between"><span class="mh-id">${first}</span><span class="faint" style="font-size:11px">every point in the Module · outlined = changed</span><span class="mh-id">${last}</span></div></div>
+    <div class="mh-row"><span class="mh-label">Before</span><div class="mh-cells" style="${cols}">${heat.map((h) => html`<span class="mh-cell m-${h.before}" title="${h.id} ${h.title}: ${h.before.replace('_', ' ')}"></span>`)}</div></div>
+    <div class="mh-row"><span class="mh-label">After</span><div class="mh-cells" style="${cols}">${heat.map((h) => html`<span class="mh-cell m-${h.after} ${h.before !== h.after ? 'changed' : ''}" title="${h.id} ${h.title}: ${h.after.replace('_', ' ')}"></span>`)}</div></div>
+  </div>`;
+}
+
 function previewPanel(app) {
   const paper = currentPaper(app);
   if (local.result) return resultPanel(app);
@@ -231,6 +266,7 @@ function previewPanel(app) {
       <div class="score-big"><span class="num">${plan.score.score} / ${plan.score.total}</span><span style="font-size:18px;font-weight:700">${plan.score.pct}%</span></div>
       ${bandBadge(plan.score.band)}
     </div>
+    ${summaryStrip(plan)}
 
     ${blanks.length ? html`<div class="section-title">Why was it left blank? (needs you)</div>
       ${blanks.map((q) => {
@@ -247,9 +283,9 @@ function previewPanel(app) {
       : html`<div class="callout tone-ok" style="margin-top:8px">Clean paper: no gaps, careless errors or timing problems.</div>`}
 
     ${decisionBlock(app, plan, test)}
-    ${exhibitBlocks(app, plan, test)}
+    ${exhibitBlocks(app, plan, test, pv.heat)}
 
-    <div class="row" style="margin-top:14px">
+    <div class="row sticky-actions">
       <button class="btn btn-primary" data-action="apply" ${unresolved.length ? html`disabled title="Say why each blank was left first"` : ''}>Apply to all three sheets</button>
       <span class="muted" style="font-size:12.5px">${unresolved.length ? `Answer the blank question${unresolved.length > 1 ? 's' : ''} above first.` : 'By hand: about 6 minutes across three spreadsheets.'}</span>
     </div>

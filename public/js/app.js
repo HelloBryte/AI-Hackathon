@@ -1,4 +1,5 @@
 import { html, fmtDate } from './ui.js';
+import * as overview from './pages/overview.js';
 import * as briefing from './pages/briefing.js';
 import * as inbox from './pages/inbox.js';
 import * as marking from './pages/marking.js';
@@ -7,9 +8,15 @@ import * as report from './pages/report.js';
 import * as records from './pages/records.js';
 import * as impact from './pages/impact.js';
 
-const PAGES = { briefing, inbox, marking, onsite, report, records, impact };
+const PAGES = { overview, briefing, inbox, marking, onsite, report, records, impact };
 
 const NAV = [
+  {
+    group: 'Start here',
+    items: [
+      { id: 'overview', time: 'Idea', label: 'Overview', sub: 'The problem and the idea' },
+    ],
+  },
   {
     group: 'Your shift',
     items: [
@@ -52,7 +59,7 @@ const modal = document.getElementById('modal');
 
 const app = {
   data: null,
-  route: { page: 'briefing', params: [] },
+  route: { page: 'overview', params: [] },
   api: {
     get: (url) => request('GET', url),
     post: (url, body) => request('POST', url, body || {}),
@@ -108,7 +115,7 @@ window.shiftmate = app;
 
 function parseRoute() {
   const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean).map(decodeURIComponent);
-  const page = PAGES[parts[0]] ? parts[0] : 'briefing';
+  const page = PAGES[parts[0]] ? parts[0] : 'overview';
   return { page, params: parts.slice(1) };
 }
 
@@ -121,7 +128,7 @@ function renderChrome() {
     pill.title = 'WeChat replies are drafted by Claude with names masked. Records use rules only.';
   } else {
     pill.className = 'pill tone-warn';
-    pill.textContent = 'Offline rules mode';
+    pill.textContent = 'Offline mode';
     pill.title = `${d.ai.reason}. Drafts come from the built-in rules engine; nothing leaves this computer.`;
   }
   document.getElementById('shift-label').textContent =
@@ -199,7 +206,7 @@ document.querySelector('[data-global="reset"]').addEventListener('click', () => 
       await app.run(() => app.api.post('/api/reset'), 'Demo data reset');
       marking.resetLocal();
       inbox.resetLocal();
-      app.navigate('#/briefing');
+      app.navigate('#/overview');
       await app.refresh({ keepScroll: false });
     },
   });

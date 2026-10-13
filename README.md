@@ -6,6 +6,14 @@ ShiftMate is a working prototype for the AIPS Hackathon case *Automating the Lea
 
 **Case materials** (in [`docs/case/`](docs/case/)): the [case brief (PDF)](docs/case/AI_Hackathon_Brief_-_Learning_Support_Tutor_Daily_Log_EN.pdf), the [judging rubric (PDF)](docs/case/AIPS_Hackathon_Judging_Rubric.pdf), and the [event schedule](docs/case/event-schedule.jpg). [`docs/case/README.md`](docs/case/README.md) summarises all three, including the rubric table. The pitch script is in [`docs/PITCH.md`](docs/PITCH.md).
 
+![Overview: Mark once. Reply once. Teach more.](docs/screenshots/overview.png)
+
+| Mark once (step 8) | WeChat inbox (steps 6-7) |
+|---|---|
+| ![One marking entry previews all three sheets, separating W from C](docs/screenshots/mark-once.png) | ![A mixed Chinese-English message turned into a Q&A booking and a SAC date to confirm](docs/screenshots/wechat-inbox.png) |
+| **Student records (Exhibits 1-3)** | **Daily report (phase 5)** |
+| ![Progress heat-map and exam statistics in the exhibits' layout](docs/screenshots/records.png) | ![Report counted from the day's work, with priority follow-ups](docs/screenshots/daily-report.png) |
+
 | Shift phase | Brief steps | What ShiftMate does |
 |---|---|---|
 | 14:15 Briefing | 2-5 | Timetable, attendance changes still sitting in WeChat, and a prep card per student built from Exhibits 2-3 (incomplete tests, SAC readiness, recent W and C mistakes, unresolved questions) |
@@ -78,7 +86,9 @@ public/           the web app (no framework)
 static/           entry point for dist/shiftmate.html
 apps-script/      Google Sheets add-on for the pilot
 docs/PITCH.md     3-minute script, demo click path and Q&A prep
+docs/SUBMISSION.md  submission email template
 docs/case/        case brief, judging rubric and event schedule
+docs/screenshots/ the screenshots in this README
 ```
 
 All student records in the demo are invented; names follow the brief's sample sheets.

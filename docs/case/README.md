@@ -55,4 +55,4 @@ Each criterion is scored 1-5; points = level × (weight ÷ 5). Ties go to the hi
 | 6. Responsible AI | 10 | Tutor keeps the judgement calls (passing a Demo, scheduling a Retest, messages to parents). Handles student data privacy and explains what happens when the AI is wrong. |
 | 7. Pitch | 5 | Problem, solution and demo land clearly, on time. Strong answers to judges' questions. |
 
-How ShiftMate answers each criterion: see the rubric map in [../PITCH.md](../PITCH.md#rubric-map-for-us).
+How ShiftMate answers each criterion: see the rubric map in [../PITCH.md](../PITCH.md#rubric-map).

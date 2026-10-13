@@ -36,15 +36,10 @@ function demoModal(app, s, module) {
 function sacBlock(app, s, card) {
   if (!card.sacs.length) return '';
   return html`${card.sacs.map((r) => html`<div class="section-title">Scenario B · ${r.sac.title} · ${fmtDate(r.sac.date)} (${r.daysLeft} days)</div>
-    <table>
-      <thead><tr><th>Module</th><th>Module Test</th><th class="num">Mastered</th><th>Status</th></tr></thead>
-      <tbody>${r.modules.map((m) => html`<tr>
-        <td>${m.module} · ${m.name}</td>
-        <td>${m.testStatus.replace(/_/g, ' ')}</td>
-        <td class="num">${m.masteredPct}%</td>
-        <td>${m.readiness === 'ready' ? html`<span class="chip tone-ok">Ready</span>` : html`<span class="chip tone-warn" title="${m.gaps.map((g) => g.id).join(', ')}">${m.gaps.length} weak points</span>`}</td>
-      </tr>`)}</tbody>
-    </table>
+    <div class="sac-rows">${r.modules.map((m) => html`<div class="sac-row">
+      <div class="sac-name"><strong>Module ${m.module}</strong> ${m.name}<br><span class="muted" style="font-size:12px">Test ${m.testStatus.replace(/_/g, ' ')} · ${m.masteredPct}% mastered</span></div>
+      ${m.readiness === 'ready' ? html`<span class="chip tone-ok">Ready</span>` : html`<span class="chip tone-warn" title="${m.gaps.map((g) => g.id).join(', ')}">${m.gaps.length} weak points</span>`}
+    </div>`)}</div>
     <ul class="list" style="margin-top:6px">${r.plan.map((p) => html`<li>${p}</li>`)}</ul>
     <div class="row" style="margin-top:6px"><button class="btn btn-xs" data-action="sac-answer" data-student="${s.id}">Practice SAC marked (+1)</button><span class="faint" style="font-size:12px">Source: ${r.sac.source}; materials: ${r.sac.materials}</span></div>`)}`;
 }
