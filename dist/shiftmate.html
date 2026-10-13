@@ -1,0 +1,1119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ShiftMate</title>
+  <meta name="description" content="AI co-pilot for the Learning Support Tutor's shift">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2312305a'/%3E%3Cpath d='M9 17l4 4 10-10' stroke='%23f2b33d' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <style>:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface-2: #f8f9fb;
+  --ink: #142033;
+  --muted: #5d6779;
+  --faint: #8a93a3;
+  --line: #e2e6ed;
+  --brand: #12305a;
+  --brand-ink: #ffffff;
+  --accent: #f2b33d;
+  --focus: #2f6fdb;
+  --link: #1f5fbf;
+
+  --ok: #23874f;
+  --ok-bg: #e5f4ea;
+  --warn: #a86a00;
+  --warn-bg: #fff3d6;
+  --bad: #c33c3c;
+  --bad-bg: #fde8e8;
+  --info: #285ea8;
+  --info-bg: #e7effb;
+
+  /* Exhibit 2 mastery colours */
+  --m-mastered: #2e9d5b;
+  --m-partial: #f0c548;
+  --m-not-understood: #e06666;
+  --m-not-covered: #2f3542;
+  --m-ink-light: #ffffff;
+  --m-ink-dark: #1d2330;
+
+  /* Exhibit 3 performance bands */
+  --b-pass: #36a862;
+  --b-mid: #f3c94e;
+  --b-low: #e05555;
+  --b-none: #eef0f4;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141c;
+    --surface: #171e29;
+    --surface-2: #1c2431;
+    --ink: #e7ebf2;
+    --muted: #a3adbd;
+    --faint: #7b8597;
+    --line: #2a3443;
+    --brand: #8fb4ff;
+    --brand-ink: #0f141c;
+    --link: #8fb4ff;
+    --ok: #5fd08f;
+    --ok-bg: #173325;
+    --warn: #f2c25b;
+    --warn-bg: #3a2e12;
+    --bad: #ff8a8a;
+    --bad-bg: #3d1d1f;
+    --info: #8fb4ff;
+    --info-bg: #1b2a44;
+    --m-not-covered: #0b0e13;
+    --b-none: #222b38;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f141c;
+  --surface: #171e29;
+  --surface-2: #1c2431;
+  --ink: #e7ebf2;
+  --muted: #a3adbd;
+  --faint: #7b8597;
+  --line: #2a3443;
+  --brand: #8fb4ff;
+  --brand-ink: #0f141c;
+  --link: #8fb4ff;
+  --ok: #5fd08f;
+  --ok-bg: #173325;
+  --warn: #f2c25b;
+  --warn-bg: #3a2e12;
+  --bad: #ff8a8a;
+  --bad-bg: #3d1d1f;
+  --info: #8fb4ff;
+  --info-bg: #1b2a44;
+  --m-not-covered: #0b0e13;
+  --b-none: #222b38;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3, h4 { margin: 0; line-height: 1.25; }
+h1 { font-size: 22px; font-weight: 700; }
+h2 { font-size: 16px; font-weight: 650; }
+h3 { font-size: 14px; font-weight: 650; }
+p { margin: 0; }
+small, .muted { color: var(--muted); }
+.faint { color: var(--faint); }
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* ---------- top bar & shell ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 10px; color: var(--ink); }
+.brand:hover { text-decoration: none; }
+.brand-mark { color: var(--brand); display: inline-flex; }
+.brand-text { display: flex; flex-direction: column; }
+.brand-text strong { font-size: 16px; letter-spacing: 0.2px; }
+.brand-text small { font-size: 12px; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.shell {
+  display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: calc(100vh - 57px);
+  background: linear-gradient(to right, var(--surface) 0 239px, var(--line) 239px 240px, transparent 240px);
+}
+.sidenav {
+  background: var(--surface);
+  padding: 14px 10px;
+  position: sticky; top: 57px; align-self: start; height: calc(100vh - 57px); overflow-y: auto;
+}
+.nav-group { margin-bottom: 14px; }
+.nav-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--faint); padding: 4px 10px 6px; }
+.nav-item {
+  display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 6px;
+  padding: 8px 10px; border-radius: 8px; color: var(--ink); margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--surface-2); text-decoration: none; }
+.nav-item.active { background: var(--info-bg); color: var(--ink); }
+.nav-item.active .nav-time { color: var(--info); }
+.nav-time { font-family: var(--mono); font-size: 11.5px; color: var(--faint); }
+.nav-label { display: flex; flex-direction: column; min-width: 0; }
+.nav-label strong { font-size: 13.5px; font-weight: 600; }
+.nav-label small { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nav-badge {
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+  background: var(--brand); color: var(--brand-ink); font-size: 11.5px; font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+main { padding: 22px 26px 60px; min-width: 0; outline: none; }
+main:focus, main:focus-visible { outline: none; }
+.loading { color: var(--muted); padding: 40px; }
+
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.page-head .kicker { font-size: 12px; color: var(--muted); margin-bottom: 4px; font-family: var(--mono); }
+.page-head p { color: var(--muted); margin-top: 4px; max-width: 720px; }
+.page-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- primitives ---------- */
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 16px;
+}
+.card + .card { margin-top: 14px; }
+.stats > .card, .cards > .card, .grid > .card, .paper-strip > * { margin-top: 0 !important; }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.card-sub { color: var(--muted); font-size: 12.5px; }
+.section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); margin: 14px 0 6px; font-weight: 600; }
+.section-title:first-child { margin-top: 0; }
+
+.grid { display: grid; gap: 14px; }
+.grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row-between { display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.stack > * + * { margin-top: 8px; }
+.spacer { flex: 1; }
+.hidden { display: none !important; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 8px; padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn:hover { background: var(--surface-2); text-decoration: none; }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-primary { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+.btn-primary:hover { background: var(--brand); filter: brightness(1.12); }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: #1d1606; }
+.btn-accent:hover { background: var(--accent); filter: brightness(1.05); }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn-ghost:hover { background: var(--surface-2); color: var(--ink); }
+.btn-sm { padding: 5px 10px; font-size: 12.5px; border-radius: 7px; }
+.btn-xs { padding: 2px 8px; font-size: 12px; border-radius: 6px; }
+
+.pill, .chip, .badge {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  border-radius: 999px; font-size: 12px; font-weight: 600; padding: 2px 9px;
+  background: var(--surface-2); color: var(--muted); border: 1px solid var(--line);
+}
+.chip { font-weight: 500; }
+.badge { border: none; }
+.tone-ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+.tone-warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+.tone-bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+.tone-info { background: var(--info-bg); color: var(--info); border-color: transparent; }
+.tone-dark { background: var(--brand); color: var(--brand-ink); border-color: transparent; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; background: var(--faint); flex: none; }
+.dot.ok { background: var(--ok); } .dot.warn { background: var(--accent); } .dot.bad { background: var(--bad); } .dot.info { background: var(--info); }
+
+input[type="text"], input[type="time"], input[type="number"], input[type="date"], select, textarea {
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; width: 100%;
+}
+textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--focus); outline-offset: -1px; border-color: transparent; }
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.check { display: flex; gap: 8px; align-items: flex-start; padding: 6px 0; cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--brand); }
+
+.stat { padding: 12px 14px; }
+.stat .num { font-size: 24px; font-weight: 700; line-height: 1.1; }
+.stat .lbl { font-size: 12px; color: var(--muted); }
+.stats { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); margin-bottom: 16px; }
+
+.callout { border-radius: 8px; padding: 10px 12px; font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
+.callout + .callout { margin-top: 8px; }
+.callout .icon { flex: none; font-weight: 700; }
+
+table { border-collapse: collapse; width: 100%; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.table-wrap table th:first-child, .table-wrap table td:first-child { padding-left: 10px; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- mastery & bands ---------- */
+.m-mastered { background: var(--m-mastered); color: var(--m-ink-light); }
+.m-partial { background: var(--m-partial); color: var(--m-ink-dark); }
+.m-not_understood { background: var(--m-not-understood); color: var(--m-ink-light); }
+.m-not_covered { background: var(--m-not-covered); color: #c9cfda; }
+.mchip { display: inline-flex; align-items: center; border-radius: 5px; padding: 1px 7px; font-size: 12px; font-weight: 600; font-family: var(--mono); }
+.arrow { color: var(--faint); margin: 0 4px; }
+
+.bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--b-none); }
+.bar > span { display: block; height: 100%; }
+
+.b-pass { background: var(--b-pass); color: #fff; }
+.b-mid { background: var(--b-mid); color: #2a2208; }
+.b-low { background: var(--b-low); color: #fff; }
+.b-none { background: var(--b-none); color: var(--faint); }
+
+.oc { font-family: var(--mono); font-weight: 700; font-size: 12px; }
+.oc-DONE { color: var(--ok); } .oc-W { color: var(--bad); } .oc-C { color: var(--warn); } .oc-BLANK { color: var(--faint); }
+
+/* ---------- briefing ---------- */
+.lesson-card .who { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.lesson-card .time { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.lesson-card .name { font-size: 16px; font-weight: 700; }
+.lesson-card.is-leave { opacity: 0.6; }
+.kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 10px; font-size: 13px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.list { margin: 0; padding-left: 18px; }
+.list li + li { margin-top: 3px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* ---------- inbox ---------- */
+.inbox { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 14px; align-items: start; }
+.msg-list { padding: 6px; }
+.msg-item { display: block; width: 100%; text-align: left; border: 1px solid transparent; background: none; padding: 10px; border-radius: 8px; cursor: pointer; font: inherit; color: inherit; }
+.msg-item:hover { background: var(--surface-2); }
+.msg-item.active { background: var(--info-bg); border-color: var(--info-bg); }
+.msg-item .preview { color: var(--muted); font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 2px; }
+.msg-item .meta { display: flex; gap: 6px; align-items: center; justify-content: space-between; }
+.msg-item.is-sent { opacity: 0.6; }
+.bubble { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px 12px 12px 4px; padding: 12px 14px; font-size: 15px; white-space: pre-wrap; }
+.bubble.out { background: var(--ok-bg); border-color: transparent; border-radius: 12px 12px 4px 12px; }
+.conf { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.conf .bar { width: 70px; height: 6px; }
+.conf .bar span { background: var(--brand); }
+.sent-to-ai { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; background: var(--surface-2); border: 1px dashed var(--line); border-radius: 8px; padding: 10px; max-height: 240px; overflow: auto; }
+details > summary { cursor: pointer; color: var(--muted); font-weight: 600; font-size: 13px; padding: 4px 0; }
+details[open] > summary { margin-bottom: 6px; }
+
+/* ---------- marking ---------- */
+.marking { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.paper-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 14px; align-items: stretch; }
+.paper-item { display: block; flex: 0 0 auto; min-width: 210px; text-align: left; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; font: inherit; color: inherit; box-shadow: var(--shadow); }
+.paper-item.done { box-shadow: none; background: var(--surface-2); cursor: default; }
+.pad-table td.pt { max-width: 0; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.paper-item:hover { border-color: var(--faint); }
+.paper-item.active { border-color: var(--brand); box-shadow: 0 0 0 1px var(--brand) inset; }
+.pad-table td, .pad-table th { padding: 5px 6px; vertical-align: middle; }
+.pad-table tr.focused td { background: var(--info-bg); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: none; background: var(--surface); padding: 5px 9px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; color: var(--muted); min-width: 38px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button:hover { background: var(--surface-2); }
+.seg button.on-DONE { background: var(--ok); color: #fff; }
+.seg button.on-W { background: var(--bad); color: #fff; }
+.seg button.on-C { background: var(--accent); color: #2a1d02; }
+.seg button.on-BLANK { background: var(--m-not-covered); color: #fff; }
+.pm { width: 56px !important; padding: 4px 6px !important; }
+.score-big { display: flex; align-items: baseline; gap: 10px; }
+.score-big .num { font-size: 30px; font-weight: 800; }
+.diff-row { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13px; }
+.diff-row:last-child { border-bottom: none; }
+.diff-row.unchanged { color: var(--faint); }
+.exhibit-tag { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--brand); background: var(--info-bg); border-radius: 4px; padding: 1px 6px; }
+.radio-list label { display: flex; gap: 8px; align-items: flex-start; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; cursor: pointer; }
+.radio-list label.suggested { border-color: var(--brand); }
+.radio-list input { margin-top: 3px; accent-color: var(--brand); }
+.kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 4px; background: var(--surface-2); }
+
+/* ---------- records ---------- */
+.heat { display: flex; flex-direction: column; gap: 6px; }
+.heat-row { display: grid; grid-template-columns: 170px 1fr; gap: 10px; align-items: center; }
+.heat-row .mod { font-size: 12.5px; }
+.heat-cells { display: flex; flex-wrap: wrap; gap: 3px; }
+.heat-cell { font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 3px 5px; border-radius: 4px; min-width: 38px; text-align: center; cursor: default; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; gap: 5px; align-items: center; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.x3 th, .x3 td { text-align: center; padding: 4px 2px; font-size: 11.5px; min-width: 27px; }
+.x3 td.name, .x3 th.name { text-align: left; min-width: 120px; padding-left: 10px; }
+.x3 .cls td { background: var(--surface-2); font-weight: 700; text-align: left; }
+.x3 td.att { font-weight: 700; font-variant-numeric: tabular-nums; }
+.student-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.student-tabs a { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 13px; }
+.student-tabs a.active { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+.student-tabs a:hover { text-decoration: none; }
+.chart { width: 100%; height: auto; }
+.chart text { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.chart .grid-line { stroke: var(--line); }
+.chart .line-score { stroke: var(--brand); fill: none; stroke-width: 2.5; }
+.chart .line-time { stroke: var(--accent); fill: none; stroke-width: 2; stroke-dasharray: 5 4; }
+.chart .pt-score { fill: var(--brand); }
+.chart .pt-time { fill: var(--accent); }
+
+/* ---------- report ---------- */
+.report-text { white-space: pre-wrap; font-family: var(--mono); font-size: 12.5px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.stamp { display: inline-flex; flex-direction: column; border: 2px solid var(--ok); color: var(--ok); border-radius: 8px; padding: 8px 14px; transform: rotate(-2deg); font-weight: 700; }
+
+/* ---------- impact ---------- */
+.impact-table input { width: 70px; padding: 4px 6px; text-align: right; }
+.big-number { font-size: 40px; font-weight: 800; line-height: 1; }
+.meter { height: 14px; border-radius: 7px; background: var(--b-none); overflow: hidden; display: flex; }
+.meter span { display: block; height: 100%; }
+
+/* ---------- toasts & modal ---------- */
+.toasts { position: fixed; right: 18px; bottom: 18px; display: flex; flex-direction: column; gap: 8px; z-index: 50; }
+.toast { background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 8px; box-shadow: var(--shadow); max-width: 380px; font-size: 13.5px; animation: pop 0.18s ease-out; }
+.toast.bad { background: var(--bad); color: #fff; }
+@keyframes pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal { border: none; border-radius: 12px; padding: 0; width: min(560px, calc(100vw - 32px)); background: var(--surface); color: var(--ink); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+.modal::backdrop { background: rgba(10, 16, 28, 0.45); }
+.modal-body { padding: 18px 20px; }
+.modal-foot { padding: 12px 20px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 8px; }
+
+.spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .marking { grid-template-columns: 1fr; }
+}
+@media (max-width: 980px) {
+  .shell { grid-template-columns: 1fr; background: none; }
+  .sidenav { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line); display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px; }
+  .nav-group { display: contents; }
+  .nav-title { display: none; }
+  .nav-item { grid-template-columns: auto auto; flex: none; }
+  .nav-item .nav-time { display: none; }
+  .nav-label small { display: none; }
+  .inbox, .marking, .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .heat-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  main { padding: 16px 16px 48px; }
+  .topbar { padding: 10px 16px; }
+  .brand-text small { display: none; }
+  .cards { grid-template-columns: 1fr; }
+  .kv { grid-template-columns: 96px 1fr; }
+}
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/briefing" aria-label="ShiftMate home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="28" height="28"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M9 17l4 4 10-10" stroke="var(--accent)" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span class="brand-text"><strong>ShiftMate</strong><small id="shift-label">Learning Support Tutor</small></span>
+    </a>
+    <div class="topbar-right">
+      <span id="ai-pill" class="pill" title="">AI</span>
+      <button class="btn btn-ghost btn-sm" data-global="reset" title="Reload the demo data">Reset demo</button>
+    </div>
+  </header>
+  <div class="shell">
+    <nav class="sidenav" id="nav" aria-label="Shift timeline"></nav>
+    <main id="main" tabindex="-1"><div class="loading">Loading...</div></main>
+  </div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <dialog id="modal" class="modal"></dialog>
+  <script>(()=>{var Qt=(e=>typeof require<"u"?require:typeof Proxy<"u"?new Proxy(e,{get:(t,n)=>(typeof require<"u"?require:t)[n]}):e)(function(e){if(typeof require<"u")return require.apply(this,arguments);throw Error('Dynamic require of "'+e+'" is not supported')});var M=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports);var B=M((ls,Ie)=>{var Me=[{id:1,name:"Functions, relations and graphs",points:[["1.1","Set notation, domain and range"],["1.2","Function notation and implied domain"],["1.3","Hybrid (piecewise) functions"],["1.4","Odd and even functions"],["1.5.1","Composite functions: existence"],["1.5.2","Composite functions: rule and domain"],["1.6.1","Inverse functions: one-to-one condition"],["1.6.2","Inverse functions: rule and graph"],["1.7","Sum, difference and product of functions"],["1.8.1","Power functions: positive integer powers"],["1.8.2","Power functions: negative and rational powers"],["1.9","Modelling with functions"]]},{id:2,name:"Polynomials",points:[["2.1","Polynomial division"],["2.2","Remainder and factor theorems"],["2.3","Solving cubic equations"],["2.4.1","Cubic graphs: stationary point of inflection form"],["2.4.2","Cubic graphs: general sketching"],["2.5","Quartic functions"],["2.6","Finding polynomial rules from graphs"],["2.7","Simultaneous equations with parameters"],["2.8","Families of polynomials"]]},{id:3,name:"Transformations",points:[["3.1.1","Translations"],["3.1.2","Dilations from the axes"],["3.1.3","Reflections in the axes"],["3.2","Combinations of transformations (mapping notation)"],["3.3","Finding the transformation from two rules"],["3.4","Matrix form of transformations"],["3.5","Transformations of inverse functions"]]},{id:4,name:"Exponential and logarithmic functions",points:[["4.1","Index laws"],["4.2","Exponential functions and graphs"],["4.3","Logarithm laws"],["4.4","Solving exponential equations"],["4.5","Logarithmic functions and graphs"],["4.6","Inverses of exponential functions"],["4.7","Exponential modelling"]]},{id:5,name:"Circular functions",points:[["5.1","Unit circle and exact values"],["5.2","Symmetry properties"],["5.3.1","Sine and cosine graphs: amplitude and period"],["5.3.2","Sine and cosine graphs: transformations"],["5.4","Solving trigonometric equations"],["5.5","Tangent function and graph"],["5.6","General solutions"],["5.7","Modelling with circular functions"]]},{id:6,name:"Differentiation",points:[["6.1","Limits and continuity"],["6.2","Differentiation from first principles"],["6.3","Derivatives of polynomials and powers"],["6.4.1","Chain rule"],["6.4.2","Product rule"],["6.4.3","Quotient rule"],["6.5","Derivatives of exponential and log functions"],["6.6","Derivatives of circular functions"],["6.7","Differentiability"]]},{id:7,name:"Applications of differentiation",points:[["7.1","Tangents and normals"],["7.2","Rates of change"],["7.3","Stationary points"],["7.4","Strictly increasing and decreasing functions"],["7.5.1","Curve sketching"],["7.5.2","Points of inflection (second derivative)"],["7.6","Absolute maximum and minimum"],["7.7","Optimisation problems"],["7.8","Newton's method"],["7.9","Linear approximation"]]},{id:8,name:"Integration",points:[["8.1","Antiderivatives of polynomials"],["8.2","Antiderivatives of exponential and circular functions"],["8.3","Antiderivatives of 1/(ax+b)"],["8.4","Integration by recognition"],["8.5","Definite integrals"],["8.6.1","Fundamental theorem of calculus"],["8.6.2","Properties of definite integrals"],["8.7.1","Area under a curve"],["8.7.2","Signed area (regions below the axis)"],["8.8.1","Area between two curves"],["8.8.2","Area between curves: finding intersections"],["8.9.1","Average value of a function"],["8.9.2","Trapezium rule approximation"],["8.9.3","Kinematics applications"]]},{id:9,name:"Discrete random variables",points:[["9.1","Conditional probability and independence"],["9.2","Discrete probability distributions"],["9.3","Expected value"],["9.4","Variance and standard deviation"],["9.5","Linear transformations of random variables"],["9.6","Sampling with and without replacement"]]},{id:10,name:"Binomial distribution",points:[["10.1","Bernoulli trials"],["10.2","Binomial probabilities"],["10.3","Mean and variance of a binomial"],["10.4","Finding n or p"],["10.5","Binomial applications"]]},{id:11,name:"Continuous random variables and the normal distribution",points:[["11.1","Probability density functions"],["11.2","Mean and median of a continuous random variable"],["11.3","Variance of a continuous random variable"],["11.4","The standard normal distribution"],["11.5","Normal probabilities with CAS"],["11.6","Inverse normal problems"],["11.7","Normal distribution applications"]]},{id:12,name:"Statistical inference",points:[["12.1","Populations and samples"],["12.2","Sample proportions"],["12.3","Distribution of sample proportions"],["12.4","Approximate confidence intervals for p"],["12.5","Interpreting confidence intervals"]]}],Ne=[];for(let e of Me)for(let[t,n]of e.points)Ne.push({id:t,module:e.id,title:n});var Ut=[{id:"MT8A",name:"Module Test 8A",kind:"module",module:8,timeLimitMin:50,questions:[{q:"1",point:"8.1",marks:2},{q:"2",point:"8.2",marks:2},{q:"3",point:"8.4",marks:3},{q:"4",point:"8.5",marks:2},{q:"5",point:"8.6.2",marks:3},{q:"6a",point:"8.7.1",marks:2},{q:"6b",point:"8.7.2",marks:2},{q:"7",point:"8.8.1",marks:3},{q:"8",point:"8.8.2",marks:4},{q:"9",point:"8.9.1",marks:3},{q:"10",point:"8.9.2",marks:3},{q:"11",point:"8.9.3",marks:4}]},{id:"MT6B",name:"Module Test 6B (Retest)",kind:"module",module:6,timeLimitMin:45,questions:[{q:"1",point:"6.1",marks:2},{q:"2",point:"6.2",marks:3},{q:"3",point:"6.3",marks:2},{q:"4a",point:"6.4.1",marks:2},{q:"4b",point:"6.4.2",marks:3},{q:"5",point:"6.4.3",marks:3},{q:"6",point:"6.5",marks:3},{q:"7",point:"6.6",marks:3},{q:"8",point:"6.6",marks:4},{q:"9",point:"6.7",marks:3}]},{id:"MT7A",name:"Module Test 7A",kind:"module",module:7,timeLimitMin:50,questions:[{q:"1",point:"7.1",marks:3},{q:"2",point:"7.2",marks:3},{q:"3",point:"7.3",marks:3},{q:"4",point:"7.4",marks:2},{q:"5a",point:"7.5.1",marks:3},{q:"5b",point:"7.5.2",marks:2},{q:"6",point:"7.6",marks:3},{q:"7",point:"7.7",marks:5},{q:"8",point:"7.8",marks:3},{q:"9",point:"7.9",marks:3}]},{id:"MT5B",name:"Module Test 5B (Retest)",kind:"module",module:5,timeLimitMin:45,questions:[{q:"1",point:"5.1",marks:2},{q:"2",point:"5.2",marks:2},{q:"3",point:"5.3.1",marks:3},{q:"4",point:"5.3.2",marks:3},{q:"5",point:"5.4",marks:4},{q:"6",point:"5.5",marks:2},{q:"7",point:"5.6",marks:4},{q:"8",point:"5.7",marks:4}]},{id:"VCAA23E1",name:"VCAA 2023 Exam 1 (mock)",kind:"vcaa",module:null,timeLimitMin:60,questions:[{q:"1a",point:"6.4.2",marks:1},{q:"1b",point:"6.4.3",marks:2},{q:"2",point:"8.5",marks:3},{q:"3",point:"4.4",marks:3},{q:"4",point:"5.4",marks:4},{q:"5a",point:"9.3",marks:2},{q:"5b",point:"9.4",marks:3},{q:"6",point:"7.1",marks:4},{q:"7",point:"1.5.2",marks:4},{q:"8",point:"8.8.1",marks:5},{q:"9a",point:"11.2",marks:4},{q:"9b",point:"7.7",marks:5}]}];Ie.exports={MODULES:Me,POINTS:Ne,TESTS:Ut}});var ce=M((ms,Ce)=>{var{MODULES:qe,POINTS:Ht,TESTS:Ft}=B();function I(e){let t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0"),o=String(e.getDate()).padStart(2,"0");return`${t}-${n}-${o}`}function q(e,t){let n=new Date(e);return n.setDate(n.getDate()+t),n}function N(e,t,n){return`${I(q(e,t))}T${n}:00`}function zt(e,t,n=0){let o=new Date(e),s=(t-o.getDay()+7)%7||7;return q(o,s+n*7)}function Kt(e){let t=e>>>0;return function(){t=t+1831565813>>>0;let n=t;return n=Math.imul(n^n>>>15,n|1),n^=n+Math.imul(n^n>>>7,n|61),((n^n>>>14)>>>0)/4294967296}}function Yt(e){let t=2166136261;for(let n of e)t=Math.imul(t^n.charCodeAt(0),16777619);return t>>>0}var xe=[{id:"phoenix",name:"Phoenix Hu",classId:"MA4021-1E",classTime:"Mon 16:30-18:30",year:12,school:"Box Hill High School",currentModule:8,teacher:"Ms Wang",parent:{name:"Ms Hu",relation:"mother",lang:"zh"}},{id:"justin",name:"Justin Dong",classId:"MA4021-1E",classTime:"Mon 16:30-18:30",year:12,school:"Balwyn High School",currentModule:6,teacher:"Ms Wang",parent:{name:"Mrs Dong",relation:"mother",lang:"zh"}},{id:"william",name:"William Wu",classId:"MA4021-1E",classTime:"Mon 16:30-18:30",year:12,school:"Glen Waverley Secondary College",currentModule:7,teacher:"Ms Wang",parent:{name:"Mr Wu",relation:"father",lang:"en"}},{id:"annie",name:"Annie Xie",classId:"MA4021-2",classTime:"Sat 10:00-12:00",year:12,school:"Camberwell High School",currentModule:7,teacher:"Mr Chen",parent:{name:"Mr Xie",relation:"father",lang:"zh"}},{id:"david",name:"David Zhu",classId:"MA4021-2",classTime:"Sat 10:00-12:00",year:12,school:"Melbourne High School",currentModule:10,teacher:"Mr Chen",parent:{name:"Mrs Zhu",relation:"mother",lang:"en"}},{id:"norton",name:"Norton Cheng",classId:"MA4021-2",classTime:"Sat 10:00-12:00",year:12,school:"Doncaster Secondary College",currentModule:7,teacher:"Mr Chen",parent:{name:"Mrs Cheng",relation:"mother",lang:"zh"}},{id:"mickey",name:"Mickey Lin",classId:"MA4021-2",classTime:"Sat 10:00-12:00",year:12,school:"Mac.Robertson Girls' High School",currentModule:7,teacher:"Dr Li",parent:{name:"Mrs Lin",relation:"mother",lang:"en"}}],De={phoenix:{1:[86],2:[50,78],3:[68,80],4:[81],5:[77],6:[79],7:[83]},justin:{1:[78],2:[32,61,77],3:[{pct:73,tutorPass:!0}],4:[91],5:[70]},william:{1:[88],2:[80],3:[76],4:[79],5:[82],6:[39]},annie:{1:[68,84],2:[33,{pct:72,tutorPass:!0}],3:[51,79],4:[81],5:[],6:[53,85]},david:{1:[92],2:[88],3:[95],4:[90],5:[86],6:[93],7:[89],8:[91],9:[87]},norton:{1:[78],2:[76],3:[84],4:[80],5:[85],6:[82]},mickey:{1:[82],2:[79],3:[66,81],4:[77],5:[80],6:[75]}},Vt={phoenix:{"8.1":"mastered","8.2":"partial","8.3":"mastered","8.4":"partial","8.5":"mastered","8.6.1":"mastered","8.6.2":"partial","8.7.1":"mastered","8.7.2":"partial","8.8.1":"partial","8.8.2":"not_understood","8.9.1":"partial","8.9.2":"not_covered","8.9.3":"partial","7.7":"partial"},justin:{"5.4":"not_understood","5.6":"not_understood","5.3.1":"partial","6.4.1":"not_understood"},william:{"6.2":"not_understood","6.4.1":"not_understood","6.4.2":"not_understood","6.4.3":"not_covered","6.5":"not_understood","6.6":"partial","6.7":"not_covered"},norton:{"7.1":"mastered","7.2":"partial","7.3":"partial","7.4":"not_understood"},mickey:{"7.8":"not_understood","7.7":"partial"}};function Zt(e){let t=Kt(Yt(e.id)),n=De[e.id]||{},o={};for(let s of qe){let a=s.points.map(([d])=>d),i=(n[s.id]||[]).some(d=>(typeof d=="number"?d:d.pct)>=75||d&&d.tutorPass);a.forEach((d,u)=>{let c=t(),p;if(s.id<e.currentModule)i?p=c<.8?"mastered":c<.95?"partial":"not_understood":p=c<.45?"mastered":c<.75?"partial":"not_understood";else if(s.id===e.currentModule){let h=u/a.length;h<.4?p=c<.6?"mastered":"partial":h<.7?p=c<.6?"partial":"not_understood":p="not_covered"}else p="not_covered";o[d]=p})}return Object.assign(o,Vt[e.id]||{}),o}function Gt(e,t){let n={},o=De[e.id]||{};for(let[s,a]of Object.entries(o)){let r=Number(s),i=(e.currentModule-r)*2;n[r]={attempts:a.map((d,u)=>{let c=typeof d=="number"?d:d.pct;return{slot:"ABCD"[u],pct:c,date:I(q(t,-i*7+u*5)),tutorPass:typeof d=="object"&&!!d.tutorPass}})}}return n}function Xt(e){let t=(n,o,s,a,r,i)=>({id:n,studentId:o,testName:s,testId:null,attempt:"A",date:I(q(e,-a)),rows:r.map(([d,u,c])=>({q:d,point:u,outcome:c})),pct:i,source:"history"});return[t("h1","justin","Module Test 5A",9,[["1","5.1","DONE"],["2","5.2","DONE"],["3","5.3.1","C"],["4","5.3.2","DONE"],["5","5.4","W"],["6","5.5","DONE"],["7","5.6","W"],["8","5.7","DONE"]],70),t("h2","william","Module Test 6A",12,[["1","6.1","DONE"],["2","6.2","W"],["3","6.3","DONE"],["4a","6.4.1","W"],["4b","6.4.2","W"],["5","6.4.3","BLANK"],["6","6.5","W"],["7","6.6","C"],["8","6.6","BLANK"],["9","6.7","BLANK"]],39),t("h3","phoenix","Module Test 7A",15,[["1","7.1","DONE"],["2","7.2","DONE"],["3","7.3","DONE"],["4","7.4","C"],["5a","7.5.1","DONE"],["5b","7.5.2","DONE"],["6","7.6","DONE"],["7","7.7","W"],["8","7.8","DONE"],["9","7.9","DONE"]],83),t("h4","annie","Module Test 6B",6,[["1","6.1","DONE"],["2","6.2","DONE"],["3","6.3","DONE"],["4a","6.4.1","C"],["4b","6.4.2","DONE"],["5","6.4.3","DONE"],["6","6.5","DONE"],["7","6.6","C"],["8","6.6","DONE"],["9","6.7","DONE"]],85),t("h5","norton","Module Test 6A",18,[["1","6.1","DONE"],["2","6.2","DONE"],["3","6.3","C"],["4a","6.4.1","DONE"],["4b","6.4.2","DONE"],["5","6.4.3","W"],["6","6.5","DONE"],["7","6.6","DONE"],["8","6.6","C"],["9","6.7","DONE"]],82),t("h6","mickey","Module Test 6A",20,[["1","6.1","DONE"],["2","6.2","DONE"],["3","6.3","DONE"],["4a","6.4.1","DONE"],["4b","6.4.2","W"],["5","6.4.3","DONE"],["6","6.5","C"],["7","6.6","DONE"],["8","6.6","W"],["9","6.7","DONE"]],75),t("h7","david","VCAA 2022 Exam 1 (mock)",7,[["1","6.4.2","DONE"],["2","8.5","DONE"],["3","4.4","DONE"],["4","5.4","C"],["5","9.4","DONE"],["6","7.1","DONE"],["7","1.5.2","W"],["8","8.8.1","DONE"],["9","11.2","DONE"]],81)]}function Jt(e){let t=n=>I(q(e,-n));return{david:[{date:t(35),paper:"VCAA 2019 Exam 1",start:"10:00",end1:"11:02",end2:"11:05",checks:1,pct:62},{date:t(28),paper:"VCAA 2020 Exam 1",start:"10:00",end1:"10:58",end2:"11:00",checks:1,pct:66},{date:t(21),paper:"VCAA 2021 Exam 1",start:"10:00",end1:"10:55",end2:"11:00",checks:2,pct:74},{date:t(7),paper:"VCAA 2022 Exam 1",start:"10:00",end1:"10:51",end2:"11:00",checks:2,pct:81}],phoenix:[{date:t(29),paper:"Module Test 6A",start:"16:40",end1:"17:22",end2:"17:27",checks:1,pct:79},{date:t(15),paper:"Module Test 7A",start:"16:35",end1:"17:21",end2:"17:25",checks:1,pct:83}],william:[{date:t(12),paper:"Module Test 6A",start:"16:35",end1:"17:25",end2:"",checks:0,pct:39}],justin:[{date:t(9),paper:"Module Test 5A",start:"16:40",end1:"17:20",end2:"17:24",checks:1,pct:70}]}}function en(e){let t=o=>N(e,0,o),n=(o,s,a,r,i,d)=>({id:o,receivedAt:t(s),studentId:a,relation:r,lang:i,text:d,channel:"Work WeChat",status:"new"});return[n("m1","11:42","justin","parent","zh","\u8001\u5E08\u60A8\u597D\uFF0CJustin\u4ECA\u5929\u6709\u70B9\u53D1\u70E7\uFF0C\u4E0B\u5348\u7684\u8BFE\u60F3\u8BF7\u5047\u4E00\u6B21\uFF0C\u9EBB\u70E6\u60A8\u8DDFMs Wang\u8BF4\u4E00\u58F0\uFF0C\u8C22\u8C22\uFF01"),n("m2","12:15","annie","student","en","hi can i do today's lesson online instead? my mum can't drive me today \u{1F64F}"),n("m3","12:31","william","student","en","did i pass the module 6 test?? and when's my retest"),n("m4","13:05","phoenix","student","en","how do u find the area between y=x^2 and y=2x? i keep getting a negative answer"),n("m5","13:20","annie","parent","zh","\u8001\u5E08\u597D\uFF0CAnnie\u8FD9\u6B21\u5B66\u6821\u7684SAC\u6210\u7EE9\u4E0D\u592A\u7406\u60F3\uFF0C\u60F3\u4E86\u89E3\u4E00\u4E0B\u5979\u6700\u8FD1\u5728\u4E2D\u5FC3\u7684\u5B66\u4E60\u60C5\u51B5\u548C\u63A5\u4E0B\u6765\u7684\u5B89\u6392\uFF0C\u8C22\u8C22\u3002"),n("m6","13:48","norton","student","mixed","\u8001\u5E08 \u6211\u4E0B\u5468\u56DB\u6709SAC \u8003differentiation \u53EF\u4EE5book\u4E00\u4E2AQ&A\u5417"),n("m7","13:55","david","parent","en","Hi, could you please send me the invoice for Term 4? Also is there a sibling discount if his brother joins next year?"),n("m8","14:02","mickey","student","en","I finished the module 7 demo questions, can I sit the test today?"),n("m9","14:10","phoenix","parent","zh","\u8C22\u8C22\u8001\u5E08\u4E0A\u5468\u7684\u53CD\u9988\uFF0CPhoenix\u8BF4\u73B0\u5728\u79EF\u5206\u6E05\u695A\u591A\u4E86\u3002")]}function tn(e=new Date){let t=new Date(e.getFullYear(),e.getMonth(),e.getDate()),n=I(t),o=xe.map(i=>({...i,sacs:[]})),s=Object.fromEntries(o.map(i=>[i.id,i]));s.phoenix.sacs.push({id:"sac-phoenix-2",title:"SAC 2: Calculus application task",date:I(q(t,6)),modules:[6,7,8],source:"school",materials:"Task outline shared on Google Classroom"}),s.annie.sacs.push({id:"sac-annie-2",title:"SAC 2: Calculus application task",date:I(q(t,13)),modules:[6,7],source:"school",materials:"Not yet received"}),s.david.sacs.push({id:"sac-david-3",title:"SAC 3: Probability modelling task",date:I(q(t,20)),modules:[9,10],source:"school",materials:"Practice SAC from centre bank"});let a={},r={};for(let i of o)a[i.id]=Zt(i),r[i.id]=Gt(i,t);return{version:1,seededAt:e.toISOString(),today:n,settings:{centre:"Maths Tutoring Centre",tutor:"Learning Support Tutor",manager:"Ms Park",shift:{start:"14:00",end:"19:00"},course:"Mathematical Methods Units 3&4"},teachers:[{name:"Ms Wang",classes:["MA4021-1E"]},{name:"Mr Chen",classes:["MA4021-2"]},{name:"Dr Li",classes:[]}],students:o,progress:a,examStats:r,markingRecords:Xt(t),examLog:Jt(t),pendingPapers:[{id:"p1",studentId:"phoenix",testId:"MT8A",submittedAt:N(t,-1,"16:58"),timing:{start:"16:05",end1:"16:52",end2:"16:58",checks:1},sampleMarks:"\u2713 w \u2713 \u2713 \u2713 \u2713 \u2713 c blank \u2713 \u2713 \u2713"},{id:"p2",studentId:"william",testId:"MT6B",submittedAt:N(t,-1,"17:24"),timing:{start:"16:35",end1:"17:24",end2:"",checks:0},sampleMarks:"\u2713\u2713\u2713\u2713x\u2713c\u2713--"},{id:"p3",studentId:"justin",testId:"MT5B",submittedAt:N(t,-3,"16:55"),timing:{start:"16:10",end1:"16:48",end2:"16:55",checks:1},sampleMarks:"1 \u2713, 2 \u2713, 3 \u2713, 4 \u2713, 5 \u2713, 6 \u2713, 7 w, 8 \u2713"},{id:"p4",studentId:"david",testId:"VCAA23E1",submittedAt:N(t,-2,"11:00"),timing:{start:"10:00",end1:"10:49",end2:"11:00",checks:2},sampleMarks:"DONE DONE DONE C DONE DONE W DONE DONE DONE DONE blank"}],timetable:[{id:"t1",studentId:"mickey",teacher:"Dr Li",start:"14:30",end:"16:00",room:"Room 1",mode:"in_person",status:"on_site",focus:"Module 7 study and Demo"},{id:"t2",studentId:"phoenix",teacher:"Ms Wang",start:"16:00",end:"18:00",room:"Room 2",mode:"in_person",status:"expected",focus:"Module 8 and SAC 2 prep"},{id:"t3",studentId:"justin",teacher:"Ms Wang",start:"16:00",end:"18:00",room:"Room 2",mode:"in_person",status:"expected",focus:"Module 6 study"},{id:"t4",studentId:"william",teacher:"Ms Wang",start:"16:30",end:"18:30",room:"Room 2",mode:"in_person",status:"expected",focus:"Module 6 Retest review"},{id:"t5",studentId:"annie",teacher:"Mr Chen",start:"16:00",end:"17:30",room:"Room 3",mode:"in_person",status:"expected",focus:"Module 7 study"},{id:"t6",studentId:"david",teacher:"Mr Chen",start:"16:00",end:"18:00",room:"Study room",mode:"in_person",status:"expected",focus:"VCAA mock review"},{id:"t7",studentId:"norton",teacher:"Mr Chen",start:"17:00",end:"18:30",room:"Room 3",mode:"in_person",status:"expected",focus:"Module 7 study"}],inbox:en(t),qaQueue:[{id:"qa1",studentId:"justin",topic:"Chain rule with circular functions",point:"6.4.1",source:"on-site",status:"open",createdAt:N(t,-3,"17:10")},{id:"qa2",studentId:"mickey",topic:"Newton's method: choosing the starting value",point:"7.8",source:"on-site",status:"open",createdAt:N(t,-2,"15:20")}],handovers:[],teacherNotices:[],retests:[{id:"r1",studentId:"annie",module:5,testName:"Module Test 5",status:"to_schedule",reason:"Not submitted",createdAt:N(t,-5,"12:00")}],demoReviews:[],testBookings:[],activity:[{id:"ev-seed-1",at:N(t,0,"14:20"),type:"checkin",studentId:"mickey"}],audit:[],report:null}}Ce.exports={buildSeed:tn,isoDate:I,addDays:q,nextWeekday:zt,STUDENTS:xe,POINTS:Ht,TESTS:Ft,MODULES:qe}});var K=M((ps,Z)=>{var nn=["DONE","W","C","BLANK"],Oe=["not_covered","not_understood","partial","mastered"],sn={mastered:"Completely mastered",partial:"Partially mastered",not_understood:"Not understood",not_covered:"Not yet covered"},W=75,G=40,C=["A","B","C","D"],Le={move_on:"Move on to the next Module",targeted_practice:"Targeted practice on the weak points",redo_demo:"Re-watch lessons and redo the Demo before a Retest",schedule_retest:"Targeted practice, then schedule a Retest",revise_module:"Revise the Module, redo the Demo, then Retest",next_mock:"Move on to the next VCAA mock exam",escalate_teacher:"All attempts used: agree a plan with the teacher"},on={time:"Ran out of time",didnt_know:"Didn't know how to start",skipped:"Skipped on purpose (strategy)"};function j(e){if(e==null)return"BLANK";var t=String(e).trim().toLowerCase().replace(/[\\/]/g,"").replace(/\s+/g," ");return t===""||t==="blank"||t==="b"||t==="-"||t==="\u2014"||t==="\u2013"||t==="na"||t==="none"||t==="not attempted"||t==="\u7A7A"||t==="\u7A7A\u767D"||t==="\u672A\u505A"||t==="\u6CA1\u505A"?"BLANK":t==="done"||t==="d"||t==="\u2713"||t==="\u2714"||t==="\u221A"||t==="v"||t==="tick"||t==="correct"||t==="ok"||t==="right"||t==="y"||t==="\u5BF9"||t==="\u6B63\u786E"?"DONE":t==="w"||t==="wrong"||t==="x"||t==="\u2717"||t==="\u2718"||t==="\xD7"||t==="incorrect"||t==="\u9519"||t==="\u9519\u8BEF"?"W":t==="c"||t==="careless"||t==="calc"||t==="slip"||t==="\u7C97\u5FC3"?"C":null}function le(e,t){var n=String(e).toLowerCase();return t.questions.some(function(o){return o.q.toLowerCase()===n})}function an(e,t){var n={outcomes:{},unknown:[],missing:[],mode:"sequence"},o=String(e||"").trim();if(!o)return n.missing=t.questions.map(function(f){return f.q}),n;var s=o.split(/[\s,;]+/).filter(function(f){return f.length>0}),a=s.some(function(f){return/^\d+[a-z]?[:=)]/i.test(f)})||le(s[0],t);if(a){n.mode="labelled";var r=[];s.forEach(function(f){var k=/^(\d+[a-z]?)[:=)](.*)$/i.exec(f);k?(r.push(k[1]),k[2]!==""?r.push(k[2]):r.push("")):r.push(f)});for(var i=0;i<r.length;){var d=r[i];if(!le(d,t)){n.unknown.push(d),i+=1;continue}var u=i+1<r.length?r[i+1]:"";if(u!==""&&le(u,t)&&j(u)===null){n.unknown.push(d+" (no mark)"),i+=1;continue}i+=2;var c=j(u),p=t.questions.filter(function(f){return f.q.toLowerCase()===d.toLowerCase()})[0].q;c===null?n.unknown.push(d+" "+u):n.outcomes[p]=c}}else{var h=s;s.length===1&&j(s[0])===null&&(n.mode="compact",h=Array.from(s[0])),t.questions.forEach(function(f,k){if(!(k>=h.length)){var w=j(h[k]);w===null?n.unknown.push(f.q+" "+h[k]):n.outcomes[f.q]=w}}),h.length>t.questions.length&&n.unknown.push("extra marks: "+h.slice(t.questions.length).join(" "))}return n.missing=t.questions.filter(function(f){return!(f.q in n.outcomes)}).map(function(f){return f.q}),n}function Re(e){return e==null?"not_submitted":e>=W?"pass":e>=G?"mid":"low"}function Be(e){return Math.round(e*10)/10}function je(e,t,n){n=n||{};var o=[],s=0,a=0;e.questions.forEach(function(i){var d=t[i.q]||"BLANK",u=d==="DONE"?i.marks:0,c=n[i.q];c!=null&&c!==""&&!isNaN(Number(c))&&(u=Math.max(0,Math.min(i.marks,Number(c)))),s+=u,a+=i.marks,o.push({q:i.q,point:i.point,outcome:d,awarded:u,max:i.marks})});var r=a?Be(s/a*100):0;return{rows:o,score:s,total:a,pct:r,band:Re(r)}}function J(e,t){var n=e.questions.map(function(i){return i.q}),o=-1;n.forEach(function(i,d){(t[i]||"BLANK")!=="BLANK"&&(o=d)});var s=[],a=[];n.forEach(function(i,d){(t[i]||"BLANK")==="BLANK"&&(d>o?s.push(i):a.push(i))});var r={};return s.forEach(function(i){r[i]="time"}),a.forEach(function(i){r[i]="didnt_know"}),{trailing:s,isolated:a,suggestions:r}}function D(e){var t=Oe.indexOf(e);return t<0?0:t}function We(e,t,n,o,s){o=o||{},s=s||{};var a=J(e,t),r={},i=[];return e.questions.forEach(function(d){var u=t[d.q]||"BLANK",c=n[d.point]||"not_covered",p,h,f,k=!1;if(u==="DONE")p="mastered",h="correct",f="Answered correctly";else if(u==="C")p=D(c)>=D("partial")?c:"partial",h="careless",f="Careless error: method understood, so not treated as a knowledge gap";else if(u==="W")p=c==="mastered"?"partial":"not_understood",h="gap",f=c==="mastered"?"Wrong on a point previously mastered: down one level":"Wrong method or concept: knowledge gap";else{var w=o[d.q];w||(w=a.suggestions[d.q],k=!0),w==="didnt_know"?(p="not_understood",h="gap",f="Left blank: did not know how to start"):(p=c,h=w==="time"?"time":"strategy",f=w==="time"?"Left blank: ran out of time (no evidence either way)":"Left blank on purpose: answering strategy, no mastery change"),k&&(f+=" (suggested; tutor to confirm)")}r[d.point]?D(p)<D(r[d.point].after)&&(r[d.point].after=p):(r[d.point]={point:d.point,title:s[d.point]||"",before:c,after:p,evidence:[],needsTutor:!1},i.push(d.point)),r[d.point].evidence.push({q:d.q,outcome:u,kind:h,reason:f}),k&&(r[d.point].needsTutor=!0)}),i.map(function(d){var u=r[d];return u.changed=u.before!==u.after,u})}function X(e,t){var n={mastered:0,partial:0,not_understood:0,not_covered:0};t.forEach(function(i){var d=e[i.id]||"not_covered";n[d]+=1});var o=t.length,s=o-n.not_covered,a=n.mastered+n.partial;function r(i,d){return d?Be(i/d*100):0}return{total:o,counts:n,covered:s,coveredPct:r(s,o),understood:a,understoodPct:r(a,o),mastered:n.mastered,masteredPct:r(n.mastered,o),masteredOfCoveredPct:r(n.mastered,s)}}function pe(e){if(!e||!e.attempts||e.attempts.length===0)return"not_attempted";var t=e.attempts.some(function(n){return n.pct>=W||n.tutorPass});return t?"passed":e.attempts.length>=C.length?"attempts_used":"retest_due"}function Qe(e){var t=e&&e.attempts?e.attempts.length:0;return t<C.length?C[t]:null}function Pe(e){if(!e)return null;var t=/^(\d{1,2}):(\d{2})/.exec(String(e).trim());return t?Number(t[1])*60+Number(t[2]):null}function me(e,t){var n=Pe(e),o=Pe(t);return n===null||o===null?null:o>=n?o-n:o+1440-n}function z(e){return e.map(function(t){return"Q"+t}).join(", ")}function Ue(e,t,n,o,s){n=n||{},s=s||{};var a=[],r=J(e,t),i={};o.forEach(function(y){i[y.point]=y.before});var d=[],u=[],c=[];e.questions.forEach(function(y){var m=t[y.q]||"BLANK",v=s[y.q]||r.suggestions[y.q];m==="W"?D(i[y.point])>=D("partial")?u.push(y):d.push(y):m==="BLANK"&&v==="didnt_know"?d.push(y):m==="C"&&c.push(y)});function p(y){var m={};return y.map(function(v){return v.point}).filter(function(v){return m[v]?!1:(m[v]=!0,!0)})}d.length&&a.push({code:"knowledge_gap",label:"Gaps in knowledge",severity:d.length>=3?"high":"medium",questions:d.map(function(y){return y.q}),points:p(d),detail:z(d.map(function(y){return y.q}))+" wrong or blank on points not yet secure"}),u.length&&a.push({code:"method",label:"Unfamiliar with solution methods",severity:"medium",questions:u.map(function(y){return y.q}),points:p(u),detail:z(u.map(function(y){return y.q}))+" wrong on points the student had shown before: method not yet reliable under test conditions"}),c.length&&a.push({code:"careless",label:"Carelessness or calculation errors",severity:c.length>=2?"high":"low",questions:c.map(function(y){return y.q}),points:p(c),detail:c.length+" careless error"+(c.length>1?"s":"")+" ("+z(c.map(function(y){return y.q}))+"). Mastery kept: these are accuracy, not understanding"});var h=me(n.start,n.end1),f=h!==null&&e.timeLimitMin&&h>e.timeLimitMin,k=r.trailing.filter(function(y){return(s[y]||r.suggestions[y])==="time"});if(k.length||f){var w=[];k.length&&w.push(z(k)+" left blank at the end"),f&&w.push("first pass took "+h+" min against a "+e.timeLimitMin+" min limit"),a.push({code:"time",label:"Poor time allocation",severity:k.length>=2?"high":"medium",questions:k,points:[],detail:w.join("; ")})}var b=n.checks===void 0||n.checks===null||n.checks===""?null:Number(n.checks),g=!n.end2||me(n.end1,n.end2)===0;(b===0||b===null&&g&&n.end1)&&e.questions.length&&a.push({code:"checking",label:"Failure to check answers",severity:c.length?"high":"low",questions:[],points:[],detail:c.length?"No checking pass, and "+c.length+" careless error(s) that a check could have caught":"No checking pass recorded"});var l=r.isolated.filter(function(y){return(s[y]||r.suggestions[y])==="skipped"});return l.length&&a.push({code:"strategy",label:"Answering strategy under exam conditions",severity:"medium",questions:l,points:[],detail:z(l)+" skipped and never returned to"}),a}function He(e,t,n,o){var s=[];n.forEach(function(c){(c.code==="knowledge_gap"||c.code==="method")&&c.points.forEach(function(p){s.indexOf(p)<0&&s.push(p)})});var a=n.filter(function(c){return c.code==="careless"})[0],r=[],i,d=!1;if(e.kind==="vcaa")t.pct>=W&&s.length<=1?(i="next_mock",r.push(t.pct+"% with at most one weak point")):(i="targeted_practice",r.push(t.pct+"%: practise "+(s.join(", ")||"the lost-mark questions")+" before the next mock"));else if(t.pct>=W)i="move_on",r.push(t.pct+"% is in the Pass band ("+W+"%+)"),s.length&&r.push("Add targeted practice on "+s.join(", "));else{d=!0;var u=o&&o.attempts?o.attempts.length:0;u+1>=C.length?(i="escalate_teacher",r.push("This was the last attempt slot ("+C[C.length-1]+")")):t.pct<G?(i="revise_module",r.push(t.pct+"% is in the Low band (under "+G+"%)")):s.length>3?(i="redo_demo",r.push(s.length+" weak points: the Module needs another pass, not a quick fix")):(i="schedule_retest",r.push(t.pct+"% is in the Mid band; gaps are concentrated in "+(s.join(", ")||"a few questions")))}return a&&a.questions.length>=2&&r.push("Build a checking routine: "+a.questions.length+" careless errors this paper"),{action:i,label:Le[i],reasons:r,retestNeeded:d,gapPoints:s}}function rn(e){var t=e.test,n={};t.questions.forEach(function(b){var g=e.outcomes?e.outcomes[b.q]:void 0;if(g!=null&&g!==""){var l=j(g);l&&(n[b.q]=l)}});var o=t.questions.filter(function(b){return!(b.q in n)}).map(function(b){return b.q}),s={};t.questions.forEach(function(b){s[b.q]=n[b.q]||"BLANK"});var a={};(e.points||[]).forEach(function(b){a[b.id]=b.title});var r=je(t,s,e.partialMarks),i=J(t,s),d=e.studentProgress||{},u=We(t,s,d,e.blankResolutions,a),c=Ue(t,s,e.timing,u,e.blankResolutions),p=He(t,r,c,e.examEntry),h=Object.assign({},d);u.forEach(function(b){h[b.point]=b.after});var f=null;if(t.kind==="module"){var k=Qe(e.examEntry);f={module:t.module,slot:k,pct:r.pct,band:r.band,statusBefore:pe(e.examEntry)}}var w=e.timing||{};return{testId:t.id,testName:t.name,missing:o,exhibit1:r.rows,score:{score:r.score,total:r.total,pct:r.pct,band:r.band},blanks:i,exhibit2:{changes:u,summaryBefore:e.points?X(d,e.points):null,summaryAfter:e.points?X(h,e.points):null},exhibit3:f,examLog:{date:e.date||null,paper:t.name,start:w.start||"",end1:w.end1||"",end2:w.end2||"",checks:w.checks===void 0?"":w.checks,score:r.score,total:r.total,pct:r.pct},issues:c,suggestion:p,unresolvedBlanks:i.trailing.concat(i.isolated).filter(function(b){return!(e.blankResolutions&&e.blankResolutions[b])})}}function dn(e,t,n,o,s,a){var r=e.modules.map(function(c){var p=s.filter(function(g){return g.id===c})[0],h=o.filter(function(g){return g.module===c}),f=X(t,h),k=pe(n?n[c]:null),w=h.filter(function(g){var l=t[g.id]||"not_covered";return l==="not_understood"||l==="partial"||l==="not_covered"}).map(function(g){return{id:g.id,title:g.title,mastery:t[g.id]||"not_covered"}}),b;return k==="passed"&&f.masteredPct>=70?b="ready":f.covered===0?b="not_started":b="in_progress",{module:c,name:p?p.name:"Module "+c,testStatus:k,masteredPct:f.masteredPct,coveredPct:f.coveredPct,readiness:b,gaps:w}}),i=null;e.date&&a&&(i=Math.round((Date.parse(e.date)-Date.parse(a))/864e5));var d=r.filter(function(c){return c.readiness!=="ready"}),u=[];return d.length?(d.forEach(function(c){u.push("Cover Module "+c.module+" ("+c.name+") first: "+(c.testStatus==="passed"?"test passed but "+c.gaps.length+" points still weak":"Module Test "+c.testStatus.replace("_"," ")))}),u.push("Then a Practice SAC to rehearse the format")):u.push("Underlying Modules are complete: set a Practice SAC now"),{sac:e,daysLeft:i,modules:r,ready:d.length===0,plan:u}}typeof Z<"u"&&Z.exports&&(Z.exports={OUTCOMES:nn,MASTERY_ORDER:Oe,MASTERY_LABEL:sn,PASS_PCT:W,LOW_PCT:G,ATTEMPT_SLOTS:C,NEXT_STEPS:Le,BLANK_REASONS:on,normaliseOutcome:j,parseQuickEntry:an,band:Re,scorePaper:je,analyseBlanks:J,masteryRank:D,proposeMasteryUpdates:We,progressSummary:X,moduleStatus:pe,nextAttemptSlot:Qe,minutesBetween:me,diagnose:Ue,suggestNextStep:He,planMarking:rn,sacReadiness:dn})});var te=M((hs,rt)=>{var ge={leave:"Leave request",switch_online:"Switch to online",reschedule:"Reschedule",qa_booking:"Q&A booking",demo_check:"Demo / test readiness",test_status:"Test status",homework_status:"Homework status",progress_request:"Progress update request",academic_question:"Maths question",sac_info:"SAC information",admin:"Fees / admin",feedback:"Feedback",other:"Other"},he=["admin","leave","switch_online","reschedule","demo_check","qa_booking","progress_request","test_status","academic_question","homework_status","sac_info","feedback","other"],un={update_timetable:"Update today's timetable and tell the teacher",answer_from_records:"Answer from the records",book_qa:"Book a Q&A session",qa_session:"Hold for Q&A (in-depth maths)",tutor_decision:"Tutor judgement needed",progress_update:"Progress update to parent (review wording)",handover_admin:"Hand over to front desk / manager",acknowledge:"Acknowledge and log",tutor_review:"Tutor to review"},Ye={leave:"update_timetable",switch_online:"update_timetable",reschedule:"update_timetable",qa_booking:"book_qa",demo_check:"tutor_decision",test_status:"answer_from_records",homework_status:"answer_from_records",progress_request:"progress_update",academic_question:"qa_session",sac_info:"book_qa",admin:"handover_admin",feedback:"acknowledge",other:"tutor_review"},cn={admin:[/\b(invoice|receipt|fees?|payment|refund|discount|enrol(l)?(ment)?|tuition|price|pricing|billing)\b/i,/学费|费用|发票|收据|退费|退款|优惠|折扣|缴费|报名费|价格/],leave:[/\b(sick|unwell|fever|absent|can'?t (come|make it|attend)|cannot (come|attend|make it)|won'?t (be able to )?(come|make it|attend)|miss (today|the lesson|class))\b/i,/请假|生病|发烧|不舒服|来不了|不能来|缺课|病了/],switch_online:[/\b(online|zoom|remote(ly)?|from home|video call)\b/i,/网课|线上|视频上课|在家上/],reschedule:[/\b(reschedul\w*|another (time|day)|move (my|the) (lesson|class|session)|change (my|the) (time|lesson|class)|swap (my|the) (lesson|class))\b/i,/改时间|调课|换时间|改到|改天|推迟|换到/],qa_booking:[/\b(book|booking|appointment|consult(ation)?|extra (session|help))\b|q\s*&\s*a|q and a/i,/预约|答疑|约一个|约个时间|补课/],demo_check:[/\bdemo\b|\b(sit|do|take) the (module )?test\b|\bready for the (module )?test\b/i,/可以考|能考|做完.{0,6}demo/i],test_status:[/\b(pass(ed)?|fail(ed)?|results?|marks?|marked|score|retest|re-test|resit)\b/i,/成绩|分数|通过|及格|补考|重考|考得/],homework_status:[/\b(homework|assignment|worksheet)\b/i,/作业/],progress_request:[/\bhow (is|has) (he|she|my (son|daughter)|\w+) (doing|going|progressing|been)\b|\bprogress\b|\bupdate on\b/i,/学习情况|学习进度|进度|表现|最近怎么样|学得怎么样/],sac_info:[/\bsac\b/i],feedback:[/\b(thank(s| you)?|appreciate|great job|feedback|complain\w*|concern(ed)?|worried|unhappy)\b/i,/谢谢|感谢|反馈|建议|担心|投诉|不满意/]},ln=/[a-z]\s*=\s*[-\w(]|\^|dy\/dx|∫|\b(sin|cos|tan|ln|log)\s*\(/i,mn=/\b(how (do|does|can|to|would|should) (you|u|i|we|one)|why (do|does|is)|what('s| is) the (answer|method))\b|\?/i,pn=/\b(integra\w*|antideriv\w*|derivativ\w*|differentiat\w*|area|tangent|stationary|equation|solve|probabilit\w*|binomial|normal|function|graph|gradient)\b/i,hn=/(怎么|如何|不会|为什么|求).{0,12}(做|算|求|解|积分|求导|面积|方程|图像)|这道题|这题|那道题/,fn=[{re:/area between|between (the )?(two )?curves|曲线之间|两条曲线/i,point:"8.8.1",module:8,topic:"Area between curves"},{re:/chain rule|链式/i,point:"6.4.1",module:6,topic:"Chain rule"},{re:/product rule/i,point:"6.4.2",module:6,topic:"Product rule"},{re:/quotient rule/i,point:"6.4.3",module:6,topic:"Quotient rule"},{re:/newton/i,point:"7.8",module:7,topic:"Newton's method"},{re:/stationary|turning point|驻点|极值/i,point:"7.3",module:7,topic:"Stationary points"},{re:/tangent|切线/i,point:"7.1",module:7,topic:"Tangents and normals"},{re:/optimi[sz]|最大值|最小值/i,point:"7.7",module:7,topic:"Optimisation"},{re:/antideriv|integra|积分/i,point:null,module:8,topic:"Integration"},{re:/differentiat|derivativ|求导|微分|导数/i,point:null,module:6,topic:"Differentiation"},{re:/binomial|二项/i,point:null,module:10,topic:"Binomial distribution"},{re:/normal distribution|正态/i,point:null,module:11,topic:"Normal distribution"},{re:/probabilit|概率/i,point:null,module:9,topic:"Probability"},{re:/\blog|exponential|指数|对数/i,point:null,module:4,topic:"Exponentials and logarithms"},{re:/\b(sin|cos|tan)\b|trig|circular|三角/i,point:null,module:5,topic:"Circular functions"},{re:/transformation|dilation|translation|变换/i,point:null,module:3,topic:"Transformations"},{re:/polynomial|cubic|quartic|多项式/i,point:null,module:2,topic:"Polynomials"}],fe={"8.8.1":"Area between curves = integral of (upper - lower) between the intersection points. For y=2x and y=x^2: they meet at x=0 and x=2, and 2x >= x^2 on [0,2], so A = \u222B0..2 (2x - x^2) dx = 4/3. A negative answer means the subtraction is the wrong way round.","6.4.1":"Chain rule: d/dx f(g(x)) = f'(g(x)) g'(x). Have the student name the inner function first, e.g. y = sin(3x^2): inner u = 3x^2, so dy/dx = cos(3x^2) * 6x.","7.8":"Newton's method: x_{n+1} = x_n - f(x_n)/f'(x_n). Pick x0 near the root from a sketch, never where f'(x0) = 0."},gn=new Set(["sac","q&a","qa","vcaa","ms","mr","mrs","dr","module","demo","test","ok"]);function Ve(e,t=[]){if((e.match(/[一-鿿]/g)||[]).length===0)return"en";let o=new Set(t.map(a=>a.toLowerCase()));return(e.match(/[A-Za-z][A-Za-z&]+/g)||[]).map(a=>a.toLowerCase()).filter(a=>!o.has(a)&&!gn.has(a)).length>=2?"mixed":"zh"}function Ze(e,t){let n=[];for(let[a,r]of Object.entries(cn))r.some(i=>i.test(e))&&n.push(a);(ln.test(e)||mn.test(e)&&pn.test(e)||hn.test(e))&&t!=="parent"&&n.push("academic_question");let s=n;return s.includes("qa_booking")&&(s=s.filter(a=>a!=="academic_question")),s.includes("admin")&&(s=s.filter(a=>!["switch_online","reschedule"].includes(a))),s.includes("demo_check")&&(s=s.filter(a=>a!=="test_status")),s.includes("progress_request")&&(s=s.filter(a=>a!=="test_status")),s.length===0&&(s=["other"]),s.sort((a,r)=>he.indexOf(a)-he.indexOf(r)),s}function ee(e){let t=e.getFullYear(),n=String(e.getMonth()+1).padStart(2,"0"),o=String(e.getDate()).padStart(2,"0");return`${t}-${n}-${o}`}var kn={\u65E5:0,\u5929:0,\u4E00:1,\u4E8C:2,\u4E09:3,\u56DB:4,\u4E94:5,\u516D:6},yn={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};function Fe(e,t,n){let o=(e.getDay()+6)%7,s=(t+6)%7,a=new Date(e);return n?a.setDate(a.getDate()-o+7+s):a.setDate(a.getDate()+(s-o+7)%7),a}function Ge(e,t){let n=new Date(`${t}T00:00:00`),o=a=>{let r=new Date(n);return r.setDate(r.getDate()+a),r};if(/今天|今晚|\btoday\b|\btonight\b|this afternoon/i.test(e))return{iso:t,phrase:"today"};if(/明天|\btomorrow\b/i.test(e))return{iso:ee(o(1)),phrase:"tomorrow"};if(/后天/.test(e))return{iso:ee(o(2)),phrase:"\u540E\u5929"};let s=/(下|这|本)?(?:个)?(?:周|星期|礼拜)([一二三四五六日天])/.exec(e);if(s)return{iso:ee(Fe(n,kn[s[2]],s[1]==="\u4E0B")),phrase:s[0],needsConfirm:!0};if(s=/\b(next|this)?\s*(sunday|monday|tuesday|tues|wednesday|weds|thursday|thurs|friday|saturday)\b/i.exec(e),s){let a=yn[s[2].toLowerCase().slice(0,3)];return{iso:ee(Fe(n,a,(s[1]||"").toLowerCase()==="next")),phrase:s[0].trim(),needsConfirm:!0}}return null}function Xe(e,t){let n={module:null,date:null,datePhrase:null,dateNeedsConfirm:!1,topic:null,point:null},o=/module\s*(\d{1,2})|\bm(\d{1,2})\b|模块\s*(\d{1,2})|第\s*(\d{1,2})\s*(?:单元|模块)/i.exec(e);o&&(n.module=Number(o[1]||o[2]||o[3]||o[4]));let s=Ge(e,t);s&&(n.date=s.iso,n.datePhrase=s.phrase,n.dateNeedsConfirm=!!s.needsConfirm);for(let a of fn)if(a.re.test(e)){n.topic=a.topic,n.point=a.point,n.module||(n.module=a.module);break}return n}var bn={pass:"Pass band",mid:"Mid band",low:"Low band"},wn={pass:"\u901A\u8FC7",mid:"\u4E2D\u7B49",low:"\u504F\u4F4E"};function vn(e){return e>=75?"pass":e>=40?"mid":"low"}function ze(e,t){let n=[],o=[];return(t&&t.attempts?t.attempts:[]).forEach((s,a)=>{let r=vn(s.pct),i=s.tutorPass?", passed on tutor judgement":"";n.push(`Module ${e} Test attempt ${s.slot}: ${s.pct}% (${bn[r]}${i})`),o.push(`Module ${e}\u6D4B\u8BD5\u7B2C${a+1}\u6B21\uFF1A${s.pct}%\uFF08${wn[r]}${s.tutorPass?"\uFF0C\u8001\u5E08\u8BC4\u5B9A\u901A\u8FC7":""}\uFF09`)}),{en:n,zh:o}}function Ke(e){return!!(e&&e.attempts&&e.attempts.some(t=>t.pct>=75||t.tutorPass))}function Je(e,t,n){let o=[],s=[],a=e.student,r=(i,d)=>{o.push(i),s.push(d)};if(e.lesson){let i=e.lesson.mode==="online"?"online":`in person, ${e.lesson.room}`;r(`Today's lesson: ${e.lesson.start}-${e.lesson.end} with ${e.lesson.teacher} (${i})`,`\u4ECA\u5929\u7684\u8BFE\uFF1A${e.lesson.start}-${e.lesson.end}\uFF0C${e.lesson.teacher}\uFF08${e.lesson.mode==="online"?"\u7EBF\u4E0A":`\u7EBF\u4E0B\uFF0C${e.lesson.room}`}\uFF09`)}else r("No lesson booked today","\u4ECA\u5929\u6CA1\u6709\u6392\u8BFE");if(t.includes("test_status")||t.includes("demo_check")||t.includes("homework_status")){let i=n.module;if(!i){let h=Object.keys(e.examStats||{}).map(Number).sort((f,k)=>k-f);i=h.find(f=>!Ke(e.examStats[f]))||h[0]||a.currentModule}let d=(e.examStats||{})[i],u=ze(i,d);o.push(...u.en),s.push(...u.zh),!d||!d.attempts||d.attempts.length===0?r(`Module ${i} Test: not sat yet`,`Module ${i}\u6D4B\u8BD5\uFF1A\u8FD8\u6CA1\u6709\u8003`):Ke(d)?r(`Module ${i}: passed`,`Module ${i}\uFF1A\u5DF2\u901A\u8FC7`):r(`Module ${i}: not passed yet (pass mark 75%)`,`Module ${i}\uFF1A\u8FD8\u6CA1\u6709\u8FBE\u523075%\u7684\u901A\u8FC7\u7EBF`),(e.pendingPapers||[]).filter(h=>h.module===i).forEach(h=>r(`${h.testName} submitted ${h.submittedDay}; marking today`,`${h.testName}\u5DF2\u4E8E${h.submittedDayZh}\u63D0\u4EA4\uFF0C\u4ECA\u5929\u6279\u6539`));let p=(e.retests||[]).find(h=>h.module===i&&h.status!=="done");p&&(p.date?r(`Retest booked for ${p.date}`,`\u91CD\u8003\u5B89\u6392\u5728${p.date}`):r("Retest to be scheduled by the tutor","\u91CD\u8003\u65F6\u95F4\u5F85\u8001\u5E08\u5B89\u6392")),t.includes("demo_check")&&r("Module Test is booked only after the tutor checks the Demo (working, accuracy, method, concepts)","\u8001\u5E08\u68C0\u67E5Demo\uFF08\u6B65\u9AA4\u3001\u51C6\u786E\u7387\u3001\u65B9\u6CD5\u3001\u6982\u5FF5\uFF09\u8FBE\u6807\u540E\u624D\u5B89\u6392Module Test")}if(t.includes("progress_request")){let i=e.progressSummary;r(`Currently studying Module ${a.currentModule} (${e.moduleName(a.currentModule)})`,`\u76EE\u524D\u5728\u5B66\u4E60Module ${a.currentModule}\uFF08${e.moduleName(a.currentModule)}\uFF09`),i&&r(`Course coverage ${i.coveredPct}%; ${i.masteredOfCoveredPct}% of covered points fully mastered`,`\u8BFE\u7A0B\u8FDB\u5EA6${i.coveredPct}%\uFF0C\u5DF2\u5B66\u5185\u5BB9\u4E2D${i.masteredOfCoveredPct}%\u5B8C\u5168\u638C\u63E1`),Object.keys(e.examStats||{}).map(Number).sort((u,c)=>c-u).slice(0,2).forEach(u=>{let c=ze(u,e.examStats[u]);o.push(...c.en),s.push(...c.zh)});for(let u=1;u<a.currentModule;u+=1){let c=(e.examStats||{})[u];c&&(!c.attempts||c.attempts.length===0)&&r(`Module ${u} Test not submitted yet`,`Module ${u}\u6D4B\u8BD5\u8FD8\u6CA1\u6709\u63D0\u4EA4`)}}return(e.sacReadiness||[]).forEach(i=>{if(i.daysLeft===null||i.daysLeft<0||i.daysLeft>21)return;let d=i.modules.filter(u=>u.readiness!=="ready").map(u=>u.module);r(`${i.sac.title} on ${i.sac.date} (${i.daysLeft} days): ${d.length?`Module ${d.join(", ")} not yet secure`:"underlying Modules complete"}`,`${i.sac.title}\u5728${i.sac.date}\uFF08\u8FD8\u6709${i.daysLeft}\u5929\uFF09\uFF1A${d.length?`Module ${d.join("\u3001")}\u8FD8\u9700\u52A0\u5F3A`:"\u76F8\u5173Module\u5DF2\u5B8C\u6210"}`)}),t.includes("progress_request")&&e.openQa&&e.openQa.length&&r(`${e.openQa.length} open Q&A item(s): ${e.openQa.map(i=>i.topic).join("; ")}`,`${e.openQa.length}\u4E2A\u5F85\u7B54\u7591\u95EE\u9898\uFF1A${e.openQa.map(i=>i.topic).join("\uFF1B")}`),{en:o,zh:s}}function et(e,t,n,o){let s=[],a=n.student,r=n.lesson,i=n.today,d=r&&(!t.date||t.date===i),u=e[0];if(u==="leave"&&d&&(s.push({type:"set_attendance",timetableId:r.id,status:"leave",label:`Mark ${a.name} on leave for ${r.start}`}),s.push({type:"notify_teacher",teacher:r.teacher,label:`Tell ${r.teacher}: ${a.name} on leave today (${r.start})`,text:`${a.name} is on leave today (${r.start}-${r.end}). Reason given by ${o.relation}.`})),u==="switch_online"&&d&&(s.push({type:"set_attendance",timetableId:r.id,status:"expected",mode:"online",label:`Switch ${a.name}'s ${r.start} lesson to online`}),s.push({type:"notify_teacher",teacher:r.teacher,label:`Tell ${r.teacher}: ${a.name} joins online today`,text:`${a.name} will join today's ${r.start} lesson online. Please share the Zoom link.`})),u==="reschedule"&&r&&s.push({type:"notify_teacher",teacher:r.teacher,label:`Ask ${r.teacher} about moving ${a.name}'s lesson`,text:`${a.name} asked to reschedule the ${r.start} lesson${t.datePhrase?` (${t.datePhrase})`:""}.`}),(e.includes("qa_booking")||e.includes("academic_question"))&&s.push({type:"book_qa",studentId:a.id,topic:t.topic||"Question from WeChat",point:t.point,label:`Add Q&A: ${a.name} - ${t.topic||"question from WeChat"}${t.point?` (${t.point})`:""}`}),e.includes("sac_info")&&t.date&&t.date!==i){let c=t.topic==="Differentiation"?[6,7]:t.module?[t.module]:[];s.push({type:"record_sac",studentId:a.id,date:t.date,modules:c,title:`SAC: ${t.topic||"topic to confirm"}`,label:`Record SAC on ${t.date}${c.length?` (Modules ${c.join(", ")})`:""}${t.dateNeedsConfirm?' - date read from "'+t.datePhrase+'", confirm':""}`})}return u==="demo_check"&&s.push({type:"flag_demo_review",studentId:a.id,module:t.module||a.currentModule,label:`Add Demo check for Module ${t.module||a.currentModule} to the on-site list`}),u==="admin"&&s.push({type:"handover",to:"Front desk / manager",studentId:a.id,label:"Hand over to front desk / manager with a summary"}),o.relation==="parent"&&(u==="feedback"||u==="progress_request"||u==="leave"||u==="admin")&&s.push({type:"log_parent_feedback",label:"Count as parent feedback completed (daily report)"}),s}function tt(e,t,n,o){let s=[];return e[0]==="progress_request"&&s.push("Parent update about a minor: check wording and facts before sending"),e[0]==="demo_check"&&s.push("Passing a Demo is the tutor's call: check it on site before booking the test"),e[0]==="academic_question"&&s.push("Maths content: decide whether to answer now or in Q&A"),e[0]==="other"&&s.push("Could not classify confidently"),t.dateNeedsConfirm&&s.push(`Date "${t.datePhrase}" read as ${t.date}: confirm`),o<.6&&e[0]!=="other"&&s.push("Low confidence classification"),s}function $n(e){return String(e||"").split(" ")[0]}function nt(e,t,n,o,s,a){let r=n.student,i=$n(r.name),d=n.lesson,u=d?d.start:"",c=d?d.teacher:r.teacher,p=o.relation==="parent",h=e[0],f=a!=="en",k=r.parent?r.parent.name:"there",w=t.topic;if(f){let g=p?`${i}\u5BB6\u957F\u60A8\u597D\uFF01`:`${i}\u4F60\u597D\uFF01`;switch(h){case"leave":return p?`${g}\u6536\u5230\uFF0C\u5DF2\u4E3A${i}\u4ECA\u5929${u}\u7684\u8BFE\u8BF7\u5047\uFF0C\u5E76\u5DF2\u8F6C\u544A${c}\u3002\u795D${i}\u65E9\u65E5\u5EB7\u590D\uFF01`:`\u6536\u5230${i}\uFF0C\u4ECA\u5929${u}\u7684\u8BFE\u5DF2\u5E2E\u4F60\u8BF7\u5047\uFF0C\u4E5F\u544A\u8BC9${c}\u4E86\u3002\u597D\u597D\u4F11\u606F\uFF01`;case"switch_online":return`\u6CA1\u95EE\u9898${i}\uFF01\u4ECA\u5929${u}\u548C${c}\u7684\u8BFE\u5DF2\u6539\u4E3A\u7EBF\u4E0A\uFF0C\u4E0A\u8BFE\u524D\u4F1A\u628AZoom\u94FE\u63A5\u53D1\u7ED9\u4F60\u3002`;case"reschedule":return`${g}\u6536\u5230\uFF0C\u6211\u548C${c}\u786E\u8BA4\u4E00\u4E0B\u8C03\u8BFE\u65F6\u95F4\uFF0C\u7A0D\u540E\u56DE\u590D\u3002`;case"demo_check":return`${i}\uFF0CModule ${t.module||r.currentModule}\u7684Demo\u5B8C\u6210\u4E86\uFF0C\u5F88\u68D2\uFF01\u4ECA\u5929${u?`${u}`:"\u6765\u4E2D\u5FC3"}\u7684\u65F6\u5019\u5E26\u4E0A\uFF0C\u6211\u5148\u68C0\u67E5\u4E00\u4E0B\u4F60\u7684\u6B65\u9AA4\u548C\u65B9\u6CD5\uFF0C\u8FBE\u5230\u8981\u6C42\u5C31\u9A6C\u4E0A\u5B89\u6392Module Test\u3002`;case"qa_booking":{let l=e.includes("sac_info")&&t.date?`\uFF0CSAC\u5728${t.date}\u6211\u4E5F\u8BB0\u4E0B\u4E86`:"";return`\u597D\u7684${i}\uFF01\u5DF2\u7ECF\u5E2E\u4F60\u767B\u8BB0\u4E86${w||""}\u7684Q&A${l}\u3002\u6211\u4ECA\u5929\u4F1A\u548C\u4F60\u786E\u8BA4\u5177\u4F53\u65F6\u95F4\u3002`}case"test_status":case"homework_status":return`${g}${s.zh.filter(l=>!l.startsWith("\u4ECA\u5929")).join("\uFF1B")}\u3002${d?`\u4ECA\u5929${u}\u4E0A\u8BFE\u65F6\u6211\u4EEC\u4E00\u8D77\u770B\u4E00\u4E0B\u3002`:""}`;case"progress_request":return`${g}\u8C22\u8C22\u60A8\u7684\u5173\u5FC3\u3002${s.zh.filter(l=>!l.startsWith("\u4ECA\u5929")).join("\uFF1B")}\u3002\u63A5\u4E0B\u6765\u6211\u4EEC\u4F1A\u5148\u628A\u8584\u5F31\u7684\u5185\u5BB9\u8865\u4E0A\uFF0C\u518D\u5B89\u6392\u7EC3\u4E60\u3002${d?`\u4ECA\u5929${u}\u7684\u8BFE\u6211\u4EEC\u4E5F\u4F1A\u91CD\u70B9\u5173\u6CE8\u3002`:""}\u5982\u9700\u8981\uFF0C\u4E5F\u53EF\u4EE5\u5B89\u6392\u4E00\u6B21\u5355\u72EC\u7B54\u7591\u3002`;case"academic_question":return`\u597D\u95EE\u9898${i}\uFF01\u5DF2\u7ECF\u8BB0\u4E0B\u6765\u4E86\uFF0C${d?`\u4ECA\u5929${u}\u4E0A\u8BFE\u65F6`:"\u4E0B\u6B21\u4E0A\u8BFE\u65F6"}\u6211\u4EEC\u4E00\u8D77\u628A\u8FD9\u9053\u9898\u8FC7\u4E00\u904D\u3002`;case"admin":return`${g}\u8C22\u8C22\u60A8\u7684\u6D88\u606F\u3002\u53D1\u7968\u548C\u8D39\u7528\u76F8\u5173\u7684\u95EE\u9898\u7531\u524D\u53F0\u8D1F\u8D23\uFF0C\u6211\u5DF2\u7ECF\u8F6C\u7ED9\u4ED6\u4EEC\uFF0C\u4ECA\u5929\u4F1A\u6709\u4EBA\u56DE\u590D\u60A8\u3002`;case"feedback":return p?`\u8C22\u8C22\u60A8\u7684\u53CD\u9988\uFF01\u5F88\u9AD8\u5174\u542C\u5230${i}${w?`\u89C9\u5F97${w==="Integration"?"\u79EF\u5206":w}`:""}\u6E05\u695A\u591A\u4E86\uFF0C\u6211\u4EEC\u4F1A\u7EE7\u7EED\u52A0\u6CB9\uFF01`:`\u8C22\u8C22${i}\uFF01\u7EE7\u7EED\u52A0\u6CB9\uFF01`;default:return"\u6536\u5230\uFF0C\u7A0D\u540E\u56DE\u590D\u60A8\u3002"}}let b=p?`Hi ${k},`:`Hi ${i},`;switch(h){case"leave":return p?`${b} thanks for letting us know. I've recorded ${i}'s leave for today's ${u} lesson and passed it on to ${c}. Hope ${i} feels better soon!`:`Thanks for letting me know, ${i}. I've marked you on leave for today's ${u} lesson and told ${c}. Hope you feel better!`;case"switch_online":return`No problem, ${i}! I've switched today's ${u} lesson with ${c} to online. You'll get the Zoom link before class.`;case"reschedule":return`${b} thanks, I'll check with ${c} about moving the ${u} lesson and confirm shortly.`;case"demo_check":return`Great work finishing the Module ${t.module||r.currentModule} Demo, ${i}! Bring it to your ${u||"next"} session${u?" today":""}: I'll check your working first, and if it meets the standard we'll book the Module Test straight away.`;case"qa_booking":{let g=e.includes("sac_info")&&t.date?` I've also noted your SAC on ${t.date}.`:"";return`Sure, ${i}! I've added a Q&A on ${w||"your question"}.${g} I'll confirm a time with you today.`}case"test_status":case"homework_status":return`${b} ${s.en.filter(g=>!g.startsWith("Today's")).join(". ")}.${d?` Let's go through it at your ${u} lesson today.`:""}`;case"progress_request":return`${b} thanks for checking in. ${s.en.filter(g=>!g.startsWith("Today's")).join(". ")}. Next we'll close the weak points first, then set practice.${d?` We'll focus on this in today's ${u} lesson.`:""} Happy to arrange a separate Q&A if helpful.`;case"academic_question":return`Good question, ${i}! I've added it to your Q&A list and we'll work through it together ${d?`at today's ${u} lesson`:"at your next lesson"}.`;case"admin":return`${b} thanks for your message. Invoices and fees are handled by our front desk, so I've passed this on and they'll get back to you today.`;case"feedback":return p?`Thank you so much for the kind words! It's great to hear ${i} is finding ${w?w.toLowerCase():"things"} clearer. We'll keep it up.`:`Thanks, ${i}! Keep it up.`;default:return`Thanks for your message${p?"":`, ${i}`}. I'll get back to you shortly.`}}function st(e,t,n,o){let s=n.student,a=o.relation==="parent"?`${s.name}'s ${s.parent?s.parent.relation:"parent"}`:s.name,r=e.filter(d=>d!=="other").map(d=>ge[d].toLowerCase()),i=[];return t.topic&&i.push(t.topic),t.module&&i.push(`Module ${t.module}`),t.date&&i.push(t.date),`${a}: ${r.join(" + ")||"unclassified message"}${i.length?` (${i.join(", ")})`:""}`}function ot(e,t){let n=[...t.en||[],...t.zh||[]].join(" "),o=new Set(n.match(/\d+(\.\d+)?%/g)||[]);return(e.match(/\d+(\.\d+)?\s*%/g)||[]).map(a=>a.replace(/\s+/g,"")).filter(a=>!o.has(a)).map(a=>`${a} is not in the student's records`)}function at(e,t,n){return["leave","switch_online","reschedule"].includes(e)&&n.lesson||e==="demo_check"&&n.lesson?"today":["progress_request","test_status","qa_booking","academic_question"].includes(e)?"soon":"low"}function _n(e,t,n={}){let o=[t.student.name,...t.student.name.split(" "),...(t.teacherNames||[]).flatMap(h=>h.split(" "))],s=e.lang||Ve(e.text,o),a=Ze(e.text,e.relation);n.forceIntent&&ge[n.forceIntent]&&(a=[n.forceIntent,...a.filter(h=>h!==n.forceIntent&&h!=="other")]);let r=Xe(e.text,t.today),i=Je(t,a,r),d=a[0]==="other"?.3:a.length>2?.65:.8;n.forceIntent&&(d=1);let u=s==="en"?"en":"zh",c=nt(a,r,t,e,i,u),p=a[0];return{mode:"rules",model:null,language:s,replyLanguage:u,intents:a,primary:p,route:Ye[p],urgency:at(p,r,t),confidence:d,summary:st(a,r,t,e),entities:r,facts:i,actions:et(a,r,t,e),needsTutor:tt(a,r,e,d),draft:c,tutorHint:r.point&&fe[r.point]?fe[r.point]:"",factWarnings:ot(c,i),sentToAI:null,recategorisedByTutor:!!n.forceIntent}}rt.exports={INTENT_LABELS:ge,ROUTES:un,ROUTE_FOR_INTENT:Ye,PRECEDENCE:he,TUTOR_HINTS:fe,detectLanguage:Ve,detectIntents:Ze,extractEntities:Xe,parseDate:Ge,buildFacts:Je,planActions:et,needsTutorReasons:tt,draftReply:nt,englishSummary:st,checkDraftFacts:ot,urgencyOf:at,triageRules:_n}});var oe=M((fs,lt)=>{var T=K(),it=te(),{MODULES:se,POINTS:P,TESTS:Sn}=B(),ke=Object.fromEntries(P.map(e=>[e.id,e.title]));function ye(e){return Sn.find(t=>t.id===e)||null}function be(e){let t=se.find(n=>n.id===e);return t?t.name:`Module ${e}`}function O(e,t){return e.students.find(n=>n.id===t)||null}function we(e,t){return e.timetable.find(n=>n.studentId===t)||null}function En(e,t){return Math.round((Date.parse(`${t.slice(0,10)}T00:00:00`)-Date.parse(`${e.slice(0,10)}T00:00:00`))/864e5)}function dt(e,t){let n=En(e,t);return n===0?{en:"today",zh:"\u4ECA\u5929"}:n===1?{en:"yesterday",zh:"\u6628\u5929"}:{en:`${n} days ago`,zh:`${n}\u5929\u524D`}}function ve(e){return String(e).slice(11,16)}function ne(e,t){return e.pendingPapers.filter(n=>!t||n.studentId===t).map(n=>{let o=ye(n.testId),s=dt(n.submittedAt,e.today);return{...n,testName:o?o.name:n.testId,module:o?o.module:null,kind:o?o.kind:null,questions:o?o.questions.length:0,submittedDay:s.en,submittedDayZh:s.zh,student:O(e,n.studentId)}})}function Y(e,t){return(t.sacs||[]).map(n=>T.sacReadiness(n,e.progress[t.id]||{},e.examStats[t.id]||{},P,se,e.today))}function ut(e,t){return e.qaQueue.filter(n=>n.studentId===t&&n.status!=="done")}function Tn(e,t){let n=O(e,t.studentId);return{today:e.today,student:n,lesson:we(e,n.id),examStats:e.examStats[n.id]||{},progressSummary:T.progressSummary(e.progress[n.id]||{},P),moduleName:be,pendingPapers:ne(e,n.id),retests:e.retests.filter(o=>o.studentId===n.id),sacReadiness:Y(e,n),openQa:ut(e,n.id),teacherNames:e.teachers.map(o=>o.name)}}function $e(e,t){let n=O(e,t),o=e.progress[t]||{},s=e.examStats[t]||{},a=n.currentModule,r=T.progressSummary(o,P.filter(l=>l.module===a)),i=T.progressSummary(o,P),d=[];Object.keys(s).map(Number).sort((l,y)=>l-y).forEach(l=>{let y=s[l],m=T.moduleStatus(y),v=y.attempts.length?y.attempts[y.attempts.length-1]:null;m==="retest_due"||m==="attempts_used"?d.push({module:l,status:m,text:`Module ${l} Test not passed (last ${v.pct}%)`}):m==="not_attempted"&&l<a&&d.push({module:l,status:"not_submitted",text:`Module ${l} Test not submitted`})}),ne(e,t).forEach(l=>{d.push({module:l.module,status:"awaiting_marking",text:`${l.testName} awaiting marking (sat ${l.submittedDay})`})}),(e.testBookings||[]).filter(l=>l.studentId===t&&l.status==="booked").forEach(l=>{d.push({module:l.module,status:"test_booked",text:`Module ${l.module} Test booked (Demo passed ${l.date})`})});let u=Y(e,n).filter(l=>l.daysLeft!==null&&l.daysLeft>=0&&l.daysLeft<=28),c=e.markingRecords.filter(l=>l.studentId===t).sort((l,y)=>l.date<y.date?1:-1).slice(0,2),p=[],h=[];c.forEach(l=>{l.rows.forEach(y=>{let m={point:y.point,title:ke[y.point]||"",test:l.testName,q:y.q};y.outcome==="W"&&!p.some(v=>v.point===y.point)&&p.push(m),y.outcome==="C"&&h.push(m)})});let f=ut(e,t),k=(e.demoReviews||[]).filter(l=>l.studentId===t&&l.status==="requested"),w=[],b=u.find(l=>l.daysLeft<=14);b&&w.push({code:"B",label:"SAC preparation",priority:!b.ready&&b.daysLeft<=7}),(ne(e,t).length||c.some(l=>l.date===e.today))&&w.push({code:"C",label:"Exam review",priority:!1}),a<=se.length&&w.push({code:"A",label:`Module ${a} study${k.length?" + Demo check":""}`,priority:k.length>0});let g=[];return b&&g.push(`Confirm ${b.sac.title} date (${b.sac.date}), topics and school materials`),p.length&&g.push(`Check ${p.slice(0,3).map(l=>l.point).join(", ")} from recent tests`),h.length>=2&&g.push(`${h.length} careless errors in the last two tests: talk about a checking routine`),f.forEach(l=>g.push(`Unresolved question: ${l.topic}`)),{student:{id:n.id,name:n.name,classId:n.classId,teacher:n.teacher,school:n.school},currentModule:{id:a,name:be(a),...r},overall:i,incomplete:d,sacs:u,recentMistakes:p,careless:h,openQa:f,demoRequests:k,scenarios:w,talkingPoints:g}}var An=["leave","switch_online","reschedule"];function Mn(e){let t=e.timetable.slice().sort((a,r)=>a.start<r.start?-1:a.start>r.start?1:0).map(a=>({...a,card:$e(e,a.studentId)})),n=[];e.inbox.forEach(a=>{if(a.status==="sent")return;let r=a.triage?a.triage.intents:it.detectIntents(a.text,a.relation);if(!An.includes(r[0]))return;let i=O(e,a.studentId),d=we(e,a.studentId);d&&n.push({kind:"attendance",level:"high",messageId:a.id,studentId:a.studentId,text:`${i.name}: ${it.INTENT_LABELS[r[0]].toLowerCase()} in WeChat at ${ve(a.receivedAt)}. Not yet confirmed or passed to ${d.teacher}.`})}),t.forEach(a=>{a.card.sacs.forEach(r=>{!r.ready&&r.daysLeft<=7&&n.push({kind:"sac",level:"medium",studentId:a.studentId,text:`${a.card.student.name}: ${r.sac.title} in ${r.daysLeft} days; Module ${r.modules.filter(i=>i.readiness!=="ready").map(i=>i.module).join(", ")} not yet secure.`})})});let o=e.inbox.filter(a=>a.status!=="sent").length;o&&n.push({kind:"inbox",level:"low",text:`${o} WeChat message(s) waiting in the inbox.`}),e.pendingPapers.length&&n.push({kind:"marking",level:"low",text:`${e.pendingPapers.length} submitted paper(s) waiting to be marked.`});let s=a=>e.timetable.filter(a).length;return{date:e.today,counts:{lessons:e.timetable.length,onSite:s(a=>a.status==="on_site"),expectedInPerson:s(a=>a.status==="expected"&&a.mode==="in_person"),online:s(a=>a.mode==="online"&&a.status!=="leave"),leave:s(a=>a.status==="leave")},lessons:t,alerts:n,teacherNotices:e.teacherNotices}}function ct(e){let t=8;Object.values(e.examStats).forEach(s=>{Object.keys(s).forEach(a=>{s[a].attempts.length&&(t=Math.max(t,Number(a)))})});let n=[];for(let s=1;s<=t;s+=1)n.push(s);let o=[];return e.students.forEach(s=>{let a=o.find(i=>i.classId===s.classId);a||(a={classId:s.classId,classTime:s.classTime,rows:[]},o.push(a));let r=e.examStats[s.id]||{};a.rows.push({student:{id:s.id,name:s.name,currentModule:s.currentModule},cells:n.map(i=>{let d=r[i],u=T.ATTEMPT_SLOTS.map((p,h)=>{let f=d&&d.attempts[h];return f?{slot:p,pct:f.pct,band:T.band(f.pct),tutorPass:!!f.tutorPass,date:f.date}:{slot:p,pct:null,band:null}}),c=T.moduleStatus(d);return c==="not_attempted"&&i<s.currentModule&&d&&(c="not_submitted"),{module:i,attempts:u,status:c}})})}),{modules:n,classes:o}}function Nn(e,t){let n=O(e,t);if(!n)return null;let o=e.progress[t]||{},s=(e.examLog[t]||[]).slice().sort((a,r)=>a.date<r.date?-1:1).map(a=>({...a,firstPassMin:T.minutesBetween(a.start,a.end1),checkMin:a.end2?T.minutesBetween(a.end1,a.end2):0}));return{student:n,card:$e(e,t),summary:T.progressSummary(o,P),modules:se.map(a=>{let r=P.filter(i=>i.module===a.id);return{id:a.id,name:a.name,summary:T.progressSummary(o,r),points:r.map(i=>({id:i.id,title:i.title,mastery:o[i.id]||"not_covered"}))}}),examStats:ct(e).classes.flatMap(a=>a.rows).find(a=>a.student.id===t),markingRecords:e.markingRecords.filter(a=>a.studentId===t).sort((a,r)=>a.date<r.date?1:-1).map(a=>({...a,rows:a.rows.map(r=>({...r,title:ke[r.point]||""}))})),examLog:s,sacs:Y(e,n),qa:e.qaQueue.filter(a=>a.studentId===t),messages:e.inbox.filter(a=>a.studentId===t)}}function In(e){let t=e.today,n=e.activity.filter(m=>String(m.at).slice(0,10)===t),o=m=>[...new Set(m)],s=m=>(O(e,m)||{name:m}).name,a=o(n.filter(m=>m.type==="checkin").map(m=>m.studentId)),r=n.filter(m=>m.type==="qa_helped"),i=o(r.map(m=>m.studentId)),d=r.reduce((m,v)=>m+(Number(v.count)||0),0),u=n.filter(m=>m.type==="test_marked"),c=n.filter(m=>m.type==="sac_answer"),p=n.filter(m=>m.type==="parent_feedback"),h=n.filter(m=>m.type==="message_sent"),f=n.filter(m=>m.type==="demo_review"),k=[];e.retests.filter(m=>m.status==="to_schedule").forEach(m=>{k.push({level:"high",studentId:m.studentId,text:`${s(m.studentId)}: schedule Module ${m.module} Retest (${m.reason})`})}),e.students.forEach(m=>{Y(e,m).forEach(v=>{v.daysLeft!==null&&v.daysLeft>=0&&v.daysLeft<=7&&!v.ready&&k.push({level:"high",studentId:m.id,text:`${m.name}: ${v.sac.title} in ${v.daysLeft} days, Module ${v.modules.filter(ue=>ue.readiness!=="ready").map(ue=>ue.module).join(", ")} not yet secure`})})});let w=e.inbox.filter(m=>m.status!=="sent");if(w.length){let m=w.filter(v=>v.relation==="parent").length;k.push({level:m?"high":"medium",text:`${w.length} WeChat message(s) not answered${m?` (${m} from parents)`:""}: ${w.map(v=>`${s(v.studentId)}${v.relation==="parent"?" (parent)":""} ${ve(v.receivedAt)}`).join(", ")}`})}e.handovers.filter(m=>m.status==="open").forEach(m=>{k.push({level:"medium",studentId:m.studentId,text:`${s(m.studentId)}: handed over to ${m.to}: ${m.summary}`})}),e.qaQueue.filter(m=>m.status!=="done").forEach(m=>{k.push({level:"low",studentId:m.studentId,text:`${s(m.studentId)}: Q&A still open on ${m.topic}`})}),(e.testBookings||[]).filter(m=>m.status==="booked").forEach(m=>{k.push({level:"low",studentId:m.studentId,text:`${s(m.studentId)}: Module ${m.module} Test booked after Demo check`})}),e.pendingPapers.length&&k.push({level:"medium",text:`${e.pendingPapers.length} paper(s) still to be marked: ${e.pendingPapers.map(m=>{let v=ye(m.testId);return`${s(m.studentId)} ${v?v.name:m.testId}`}).join("; ")}`});let b={high:0,medium:1,low:2};k.sort((m,v)=>b[m.level]-b[v.level]);let g={onSite:a.length,qaStudents:i.length,qaQuestions:d,testsMarked:u.length,sacAnswers:c.length,parentFeedback:p.length,repliesSent:h.length,demoReviews:f.length},l=[`Daily work report - ${e.settings.centre} - ${t}`,`${e.settings.tutor}, shift ${e.settings.shift.start}-${e.settings.shift.end}`,"",`- Students studying on site: ${g.onSite}${a.length?` (${a.map(s).join(", ")})`:""}`,`- Q&A: ${g.qaStudents} student(s) helped, about ${g.qaQuestions} question(s)`,`- Test papers marked: ${g.testsMarked}${u.length?` (${u.map(m=>`${s(m.studentId)} ${m.testName} ${m.pct}%`).join("; ")})`:""}`,`- SAC / Practice SAC answers completed: ${g.sacAnswers}`,`- Parent feedback messages completed: ${g.parentFeedback} (WeChat replies sent in total: ${g.repliesSent})`,`- Demo checks: ${g.demoReviews}`,"- Priority follow-up:",...k.length?k.filter(m=>m.level!=="low").map((m,v)=>`  ${v+1}. ${m.text}`):["  None"]],y=[`\u6BCF\u65E5\u5DE5\u4F5C\u62A5\u544A - ${t}`,`\u503C\u73ED\u65F6\u95F4 ${e.settings.shift.start}-${e.settings.shift.end}`,"",`- \u4ECA\u65E5\u5728\u4E2D\u5FC3\u5B66\u4E60\u7684\u5B66\u751F\uFF1A${g.onSite}\u4EBA`,`- \u7B54\u7591\uFF1A${g.qaStudents}\u540D\u5B66\u751F\uFF0C\u7EA6${g.qaQuestions}\u9053\u9898`,`- \u6279\u6539\u8BD5\u5377\uFF1A${g.testsMarked}\u4EFD`,`- \u5B8C\u6210SAC / Practice SAC\u7B54\u6848\uFF1A${g.sacAnswers}\u4EFD`,`- \u5B8C\u6210\u5BB6\u957F\u53CD\u9988\uFF1A${g.parentFeedback}\u6761\uFF08\u5171\u56DE\u590D\u5FAE\u4FE1${g.repliesSent}\u6761\uFF09`,`- Demo\u68C0\u67E5\uFF1A${g.demoReviews}\u6B21`,`- \u9700\u91CD\u70B9\u8DDF\u8FDB\uFF1A${k.filter(m=>m.level!=="low").length}\u9879\uFF08\u8BE6\u89C1\u82F1\u6587\u7248\uFF09`];return{date:t,counts:g,followUps:k,text:l.join(`
+`),textZh:y.join(`
+`),signedOff:e.report}}lt.exports={POINT_TITLE:ke,testById:ye,moduleName:be,studentById:O,lessonFor:we,dayLabel:dt,timeOf:ve,pendingPapersFor:ne,sacReadinessFor:Y,messageContext:Tn,studentCard:$e,buildBriefing:Mn,examStatsTable:ct,studentProfile:Nn,buildDailyReport:In}});var vt=M((gs,wt)=>{var Q=K(),{POINTS:qn,TESTS:xn}=B(),U=oe(),$=class extends Error{constructor(t,n=400){super(t),this.status=n}};function S(e=new Date){let t=n=>String(n).padStart(2,"0");return`${e.getFullYear()}-${t(e.getMonth()+1)}-${t(e.getDate())}T${t(e.getHours())}:${t(e.getMinutes())}:${t(e.getSeconds())}`}function E(e){return`${e}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,6)}`}function L(e,t,n,o){e.activity.push({id:E("ev"),at:S(o),type:t,...n})}function _e(e,t,n){e.audit.push({id:E("au"),at:S(n),...t})}function ae(e,t){let n=U.studentById(e,t);if(!n)throw new $(`Unknown student ${t}`,404);return n}function Dn(e){let t=xn.find(n=>n.id===e);if(!t)throw new $(`Unknown test ${e}`,404);return t}function mt(e,t){let n=t.studentId,o=t.testId,s=null;if(t.paperId){if(s=e.pendingPapers.find(i=>i.id===t.paperId),!s)throw new $("That paper has already been marked or does not exist",404);n=s.studentId,o=s.testId}let a=ae(e,n),r=Dn(o);return{student:a,test:r,paper:s}}function pt(e,t){let{student:n,test:o,paper:s}=mt(e,t),a=Q.planMarking({test:o,outcomes:t.outcomes||{},partialMarks:t.partialMarks||{},timing:t.timing||(s?s.timing:{}),blankResolutions:t.blankResolutions||{},studentProgress:e.progress[n.id]||{},examEntry:o.module?(e.examStats[n.id]||{})[o.module]:null,points:qn,date:e.today});return{student:{id:n.id,name:n.name,currentModule:n.currentModule},test:o,plan:a}}var Cn={move_on:"\u8FDB\u5165\u4E0B\u4E00\u4E2AModule",targeted_practice:"\u9488\u5BF9\u8584\u5F31\u77E5\u8BC6\u70B9\u505A\u4E13\u9879\u7EC3\u4E60",redo_demo:"\u91CD\u770B\u76F8\u5173\u8BFE\u7A0B\u5E76\u91CD\u505ADemo\uFF0C\u7136\u540E\u91CD\u8003",schedule_retest:"\u5148\u505A\u4E13\u9879\u7EC3\u4E60\uFF0C\u7136\u540E\u5B89\u6392\u91CD\u8003\uFF08Retest\uFF09",revise_module:"\u590D\u4E60\u672CModule\uFF0C\u91CD\u505ADemo\u540E\u518D\u91CD\u8003",next_mock:"\u8FDB\u5165\u4E0B\u4E00\u5957VCAA\u6A21\u62DF\u8003\u8BD5",escalate_teacher:"\u4E0E\u8001\u5E08\u5546\u5B9A\u4E0B\u4E00\u6B65\u5B66\u4E60\u8BA1\u5212"};function ht(e,t,n,o,s){let a=e.name.split(" ")[0],r=n.suggestion.gapPoints.map(u=>`${u} ${U.POINT_TITLE[u]||""}`.trim()),i=n.issues.find(u=>u.code==="careless"),d=n.score.pct>=Q.PASS_PCT||o.tutorPass;return s==="zh"?[`${a}\u5BB6\u957F\u60A8\u597D\uFF01${a}\u7684${t.name}\u5DF2\u6279\u6539\uFF1A${n.score.score}/${n.score.total}\uFF08${n.score.pct}%\uFF09${d?"\uFF0C\u5DF2\u901A\u8FC7":""}\u3002`,r.length?`\u9700\u8981\u52A0\u5F3A\u7684\u77E5\u8BC6\u70B9\uFF1A${r.join("\u3001")}\u3002`:"",i?`\u6709${i.questions.length}\u5904\u7C97\u5FC3\u5931\u5206\uFF0C\u6211\u4EEC\u4F1A\u7EC3\u4E60\u68C0\u67E5\u7684\u4E60\u60EF\u3002`:"",`\u4E0B\u4E00\u6B65\uFF1A${Cn[o.action]||o.label}\u3002\u5982\u6709\u95EE\u9898\u6B22\u8FCE\u968F\u65F6\u8054\u7CFB\u3002`].filter(Boolean).join(""):[`Hi ${e.parent?e.parent.name:"there"}, ${a}'s ${t.name} has been marked: ${n.score.score}/${n.score.total} (${n.score.pct}%)${d?", a pass":""}.`,r.length?` Points to work on: ${r.join("; ")}.`:"",i?` ${i.questions.length} mark(s) were lost to careless slips, so we'll practise a checking routine.`:"",` Next step: ${(o.label||n.suggestion.label).toLowerCase()}. Happy to chat any time.`].join("")}function Pn(e,t,n=new Date){let{student:o,test:s,paper:a}=mt(e,t),{plan:r}=pt(e,t);if(r.missing.length)throw new $(`Questions not marked yet: ${r.missing.map(l=>`Q${l}`).join(", ")}`);let d=r.blanks.trailing.concat(r.blanks.isolated).filter(l=>!(t.blankResolutions&&t.blankResolutions[l]));if(d.length)throw new $(`Confirm why ${d.map(l=>`Q${l}`).join(", ")} ${d.length>1?"were":"was"} left blank`);let u=t.decision||{},c=u.action||r.suggestion.action;if(!Q.NEXT_STEPS[c])throw new $(`Unknown next step ${c}`);let p=!!u.tutorPass&&r.score.pct<Q.PASS_PCT,h=Q.NEXT_STEPS[c],f={id:E("mk"),studentId:o.id,testId:s.id,testName:s.name,attempt:r.exhibit3?r.exhibit3.slot:"-",date:e.today,rows:r.exhibit1.map(l=>({q:l.q,point:l.point,outcome:l.outcome,awarded:l.awarded,max:l.max})),score:r.score.score,total:r.score.total,pct:r.score.pct,band:r.score.band,timing:t.timing||(a?a.timing:{}),blankResolutions:t.blankResolutions||{},issues:r.issues,suggestion:r.suggestion,decision:{action:c,label:h,tutorPass:p,note:u.note||""},source:"shiftmate"};e.markingRecords.push(f);let k=e.progress[o.id]||(e.progress[o.id]={});if(r.exhibit2.changes.forEach(l=>{k[l.point]=l.after}),r.exhibit3){if(!r.exhibit3.slot)throw new $("All four attempt slots (A-D) are already used for this Module");let l=e.examStats[o.id]||(e.examStats[o.id]={});(l[s.module]||(l[s.module]={attempts:[]})).attempts.push({slot:r.exhibit3.slot,pct:r.score.pct,date:e.today,tutorPass:p})}(e.examLog[o.id]||(e.examLog[o.id]=[])).push({...r.examLog,date:e.today}),a&&(e.pendingPapers=e.pendingPapers.filter(l=>l.id!==a.id));let b=r.score.pct>=Q.PASS_PCT||p;s.kind==="module"&&(e.retests.filter(l=>l.studentId===o.id&&l.module===s.module&&l.status!=="done").forEach(l=>{l.status=b?"done":l.status}),!b&&["schedule_retest","redo_demo","revise_module","escalate_teacher"].includes(c)&&e.retests.push({id:E("rt"),studentId:o.id,module:s.module,testName:`Module Test ${s.module}`,status:"to_schedule",reason:h,createdAt:S(n)}),b&&c==="move_on"&&o.currentModule===s.module&&(o.currentModule=s.module+1),(e.testBookings||[]).filter(l=>l.studentId===o.id&&l.module===s.module&&l.status==="booked").forEach(l=>{l.status="done"})),u.addQa&&r.suggestion.gapPoints.length&&r.suggestion.gapPoints.forEach(l=>{e.qaQueue.push({id:E("qa"),studentId:o.id,topic:`${l} ${U.POINT_TITLE[l]||""} (from ${s.name})`.trim(),point:l,source:"exam review",status:"open",createdAt:S(n)})}),L(e,"test_marked",{studentId:o.id,testName:s.name,pct:r.score.pct},n),_e(e,{feature:"marking",studentId:o.id,subject:s.name,suggested:r.suggestion.action,decided:c,overridden:r.suggestion.action!==c||p,detail:p?`Tutor pass at ${r.score.pct}%`:""},n);let g=o.parent&&o.parent.lang==="zh"?"zh":"en";return{record:f,summary:{exhibit1Rows:f.rows.length,exhibit2Changed:r.exhibit2.changes.filter(l=>l.changed).length,exhibit3:r.exhibit3?`Module ${s.module}, attempt ${r.exhibit3.slot}: ${r.score.pct}%`:null,examLog:!0},parentNote:ht(o,s,r,{action:c,label:h,tutorPass:p},g),parentNoteLang:g}}function ft(e,t){let n=e.inbox.find(o=>o.id===t);if(!n)throw new $(`Unknown message ${t}`,404);return n}function On(e,t,n){let o=ft(e,t);return o.triage=n,o.status==="new"&&(o.status="triaged"),n.usage&&(e.aiUsage=e.aiUsage||{calls:0,input:0,output:0},e.aiUsage.calls+=1,e.aiUsage.input+=n.usage.input,e.aiUsage.output+=n.usage.output),o}function Ln(e,t,n,o){switch(n.type){case"set_attendance":{let s=e.timetable.find(a=>a.id===n.timetableId);if(!s)return;n.status&&(s.status=n.status),n.mode&&(s.mode=n.mode);break}case"notify_teacher":e.teacherNotices.push({id:E("tn"),at:S(o),teacher:n.teacher,studentId:t.studentId,text:n.text});break;case"book_qa":e.qaQueue.push({id:E("qa"),studentId:t.studentId,topic:n.topic,point:n.point||null,source:"wechat",status:"open",createdAt:S(o),messageId:t.id});break;case"record_sac":{U.studentById(e,t.studentId).sacs.push({id:E("sac"),title:n.title,date:n.date,modules:n.modules,source:"student (WeChat)",materials:"Ask the student to bring school materials"});break}case"flag_demo_review":e.demoReviews.push({id:E("dr"),studentId:t.studentId,module:n.module,status:"requested",at:S(o)});break;case"handover":e.handovers.push({id:E("ho"),at:S(o),to:n.to,studentId:t.studentId,messageId:t.id,summary:t.triage?t.triage.summary:t.text,original:t.text,status:"open"});break;case"log_parent_feedback":L(e,"parent_feedback",{studentId:t.studentId,messageId:t.id},o);break;default:throw new $(`Unknown action ${n.type}`)}}function Rn(e,t,n,o=new Date){let s=ft(e,t);if(s.status==="sent")throw new $("This message has already been answered");if(!s.triage)throw new $("Triage the message first");let a=String(n.reply||"").trim();if(!a)throw new $("The reply is empty");let r=Array.isArray(n.actions)?n.actions:[],i=s.triage.actions.filter((d,u)=>r.includes(u));return i.forEach(d=>Ln(e,s,d,o)),s.status="sent",s.reply=a,s.sentAt=S(o),s.appliedActions=i.map(d=>d.label),L(e,"message_sent",{studentId:s.studentId,relation:s.relation,messageId:s.id},o),_e(e,{feature:"wechat",studentId:s.studentId,subject:`Message ${s.id}`,mode:s.triage.mode,suggested:s.triage.primary,decided:s.triage.primary,edited:a!==s.triage.draft,overridden:a!==s.triage.draft||i.length!==s.triage.actions.length,detail:`${i.length}/${s.triage.actions.length} actions accepted${a!==s.triage.draft?", reply edited":""}`},o),s}function gt(e,t,n=new Date){let o=e.timetable.find(s=>s.id===t);if(!o)throw new $("Unknown lesson",404);if(o.status==="leave")throw new $("This student is on leave today");return o.status="on_site",L(e,"checkin",{studentId:o.studentId},n),o}function kt(e,t,n=new Date){ae(e,t.studentId);let o=Math.max(1,Math.min(50,Number(t.count)||1));if(L(e,"qa_helped",{studentId:t.studentId,count:o,topic:t.topic||""},n),t.qaId){let s=e.qaQueue.find(a=>a.id===t.qaId);s&&(s.status="done",s.doneAt=S(n))}return{ok:!0}}var yt=["working","accuracy","method","concepts"];function Bn(e,t,n=new Date){let o=ae(e,t.studentId),s=Number(t.module)||o.currentModule,a=t.checks||{},r=t.outcome;if(!["meets","not_yet"].includes(r))throw new $("Choose whether the Demo meets the standard");let i=yt.filter(u=>!a[u]),d=e.demoReviews.find(u=>u.studentId===o.id&&u.module===s&&u.status==="requested")||{id:E("dr"),studentId:o.id,module:s,at:S(n)};return e.demoReviews.includes(d)||e.demoReviews.push(d),d.status=r,d.checks=a,d.note=t.note||"",d.reviewedAt=S(n),r==="meets"?(e.testBookings=e.testBookings||[],e.testBookings.push({id:E("tb"),studentId:o.id,module:s,status:"booked",date:e.today})):(t.points||[]).forEach(u=>{e.qaQueue.push({id:E("qa"),studentId:o.id,topic:`Re-watch and redo: ${u} ${U.POINT_TITLE[u]||""}`.trim(),point:u,source:"demo review",status:"open",createdAt:S(n)})}),L(e,"demo_review",{studentId:o.id,module:s,outcome:r},n),_e(e,{feature:"demo",studentId:o.id,subject:`Module ${s} Demo`,suggested:i.length?"not_yet":"meets",decided:r,overridden:(i.length?"not_yet":"meets")!==r,detail:i.length?`Unticked: ${i.join(", ")}`:"All four checks ticked"},n),d}function bt(e,t,n=new Date){ae(e,t.studentId);let o=t.kind==="SAC"?"SAC":"Practice SAC";return L(e,"sac_answer",{studentId:t.studentId,kind:o,note:t.note||""},n),{ok:!0}}function jn(e,t,n){let o=e.retests.find(s=>s.id===t);if(!o)throw new $("Unknown retest",404);return o.status="scheduled",o.date=n.date||null,o}function Wn(e,t){let n=e.handovers.find(o=>o.id===t);if(!n)throw new $("Unknown handover",404);return n.status="closed",n}function Qn(e,t,n=new Date){let o=String(t.manager||"").trim();if(!o)throw new $("Enter the manager's name");let s=U.buildDailyReport(e);return e.report={signedBy:o,signedAt:S(n),text:t.text||s.text,counts:s.counts},e.report}function Un(e,t=new Date){let n={phoenix:["Area between curves",3],david:["VCAA 2023 Q9b: optimisation",2],norton:["Stationary points",2],william:["Chain rule",4],mickey:["Newton's method",1]};return e.timetable.forEach(o=>{o.status==="expected"&&o.mode==="in_person"&&gt(e,o.id,t)}),e.timetable.forEach(o=>{if(o.status!=="on_site"&&o.mode!=="online")return;let s=n[o.studentId];s&&kt(e,{studentId:o.studentId,count:s[1],topic:s[0]},t)}),bt(e,{studentId:"phoenix",kind:"Practice SAC",note:"Calculus application practice SAC marked"},t),{ok:!0}}wt.exports={ActionError:$,nowISO:S,previewMarking:pt,applyMarking:Pn,draftResultNote:ht,storeTriage:On,approveMessage:Rn,checkIn:gt,logQa:kt,demoReview:Bn,recordSacAnswer:bt,resolveRetest:jn,closeHandover:Wn,signOff:Qn,simulateAfternoon:Un,DEMO_CHECKS:yt}});var It=M((ks,Nt)=>{var A=te(),x=null;try{x=Qt("@anthropic-ai/sdk")}catch{x=null}var _t="claude-opus-5-5",Hn=new Set(["claude-opus-5-5","claude-opus-5","claude-fable-5-1","claude-sonnet-5-5"]),V=Object.keys(A.INTENT_LABELS);function ie(){return{model:process.env.SHIFTMATE_MODEL||_t,mode:(process.env.SHIFTMATE_AI||"auto").toLowerCase()}}var R;function Ee(){if(R!==void 0)return R;let{mode:e}=ie(),t=!!(process.env.ANTHROPIC_API_KEY||process.env.ANTHROPIC_AUTH_TOKEN);if(e==="off"||!x||!t&&e!=="on")return R=null,R;let n=x.default||x;try{R=new n({timeout:45e3,maxRetries:1})}catch{R=null}return R}function Fn(){let e=Ee(),{model:t,mode:n}=ie(),o="";return e||(n==="off"?o="AI switched off (SHIFTMATE_AI=off)":x?o="No ANTHROPIC_API_KEY set":o="Anthropic SDK not installed (run npm install)"),{enabled:!!e,model:e?t:null,reason:o}}function $t(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function St(e){let t=e.student,n=t.name.split(" "),o=[[t.name,"[STUDENT]"],[n[0],"[STUDENT]"]];return n.length>1&&n.slice(1).join(" ").length>1&&o.push([n.slice(1).join(" "),"[SURNAME]"]),t.parent&&t.parent.name&&o.push([t.parent.name,"[PARENT]"]),t.school&&o.push([t.school,"[SCHOOL]"]),t.chineseName&&o.push([t.chineseName,"[STUDENT]"]),o.sort((s,a)=>a[0].length-s[0].length)}function Se(e,t){let n=String(e||"");for(let[o,s]of t){let r=/^[\x20-\x7e]+$/.test(o)?new RegExp(`(?<![A-Za-z])${$t(o)}(?![A-Za-z])`,"gi"):new RegExp($t(o),"g");n=n.replace(r,s)}return n}function re(e,t){let n=t.student,o=n.name.split(" ");return String(e||"").replace(/\[STUDENT\]/g,o[0]).replace(/\[SURNAME\]/g,o.slice(1).join(" ")).replace(/\[PARENT\]/g,n.parent?n.parent.name:"there").replace(/\[SCHOOL\]/g,n.school||"school")}var Et=`You help the Learning Support Tutor at a mathematics tutoring centre in Melbourne handle Work WeChat messages from VCE Mathematical Methods students (most are minors) and their parents. You prepare a draft; the tutor reads, edits and sends it. You never send anything and never make decisions about students.
+
+Classify the message with these intents: ${V.map(e=>`${e} (${A.INTENT_LABELS[e]})`).join(", ")}. List every intent that applies, most important first, and set primary_intent to the first one.
+
+Write draft_reply:
+- In the sender's language. For a Chinese or mixed Chinese/English message, reply in Chinese and keep the course words the sender used in English (Module, SAC, Demo, Q&A, maths terms). For an English message, reply in English.
+- Short and warm, WeChat style: 1-3 sentences, up to 5 for a parent asking about progress.
+- Quote marks, dates, percentages, bookings and lesson times only from the FACTS block. Never invent or estimate them. If something needed is missing, say the tutor will confirm.
+- Names are replaced by placeholders such as [STUDENT], [SURNAME], [PARENT] and [SCHOOL]. Use the placeholders exactly as written; never guess real names.
+- Do not teach maths in the reply. For a maths question, acknowledge it and say it will be covered in the lesson or a Q&A session, and put a short, correct worked explanation for the tutor in tutor_hint. Otherwise tutor_hint is an empty string.
+- Fees, invoices, refunds, enrolment and complaints are outside the tutor's authority: say the message has been passed to the front desk.
+- Passing a Demo, scheduling a Retest and judging progress are the tutor's decisions: do not promise outcomes.
+
+Also return summary (one English line for the tutor), module (integer, 0 if none), topic (short English maths topic or empty string), date_mentioned (YYYY-MM-DD if the message names a day, resolved against TODAY, else empty string), confidence (0 to 1) and needs_tutor (short English reasons the tutor should look closely; empty array if routine).`,Tt={type:"object",properties:{language:{type:"string",enum:["en","zh","mixed"]},intents:{type:"array",items:{type:"string",enum:V}},primary_intent:{type:"string",enum:V},summary:{type:"string"},module:{type:"integer"},topic:{type:"string"},date_mentioned:{type:"string"},confidence:{type:"number"},needs_tutor:{type:"array",items:{type:"string"}},draft_reply:{type:"string"},tutor_hint:{type:"string"}},required:["language","intents","primary_intent","summary","module","topic","date_mentioned","confidence","needs_tutor","draft_reply","tutor_hint"],additionalProperties:!1},zn=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];function At(e,t,n,o){let s=zn[new Date(`${t.today}T00:00:00`).getDay()],a=e.relation==="parent"?"a parent of [STUDENT]":"the student [STUDENT]";return[`TODAY: ${t.today} (${s})`,`SENDER: ${a}`,"MESSAGE:",'"""',Se(e.text,o),'"""',"FACTS from the centre's records (the only facts you may quote):",...n.map(r=>`- ${Se(r,o)}`)].join(`
+`)}function Kn(e){let t=x?x.default||x:null;return t&&e instanceof t.AuthenticationError?"API key rejected":t&&e instanceof t.RateLimitError?"Rate limited":t&&e instanceof t.APIConnectionError?"Could not reach the Claude API":t&&e instanceof t.APIError?`Claude API error ${e.status}`:e&&e.message?e.message:String(e)}function Yn(e){let t=Number(e);return Number.isFinite(t)?Math.max(0,Math.min(1,t)):0}function Mt(e,t,n,o,s,a,r){let i=(Array.isArray(e.intents)?e.intents:[]).filter(w=>V.includes(w)),d=V.includes(e.primary_intent)?e.primary_intent:i[0]||"other",u=[d,...i.filter(w=>w!==d)],c={...t.entities};!c.module&&Number(e.module)>0&&(c.module=Number(e.module)),!c.topic&&e.topic&&(c.topic=e.topic),!c.date&&/^\d{4}-\d{2}-\d{2}$/.test(e.date_mentioned||"")&&(c.date=e.date_mentioned,c.datePhrase=e.date_mentioned,c.dateNeedsConfirm=!0);let p=re(e.draft_reply,o),h=Yn(e.confidence),f=[...Array.isArray(e.needs_tutor)?e.needs_tutor:[],...A.needsTutorReasons(u,c,n,h)];t.primary!==d&&t.primary!=="other"&&f.push(`Rules classifier read this as "${A.INTENT_LABELS[t.primary]}": check the category`);let k=["en","zh","mixed"].includes(e.language)?e.language:t.language;return{mode:"claude",model:r.model||ie().model,language:k,replyLanguage:k==="en"?"en":"zh",intents:u,primary:d,route:A.ROUTE_FOR_INTENT[d],urgency:A.urgencyOf(d,c,o),confidence:h,summary:re(e.summary,o),entities:c,facts:s,actions:A.planActions(u,c,o,n),needsTutor:[...new Set(f)],draft:p,tutorHint:re(e.tutor_hint||"",o),factWarnings:A.checkDraftFacts(p,s),sentToAI:a,usage:r.usage?{input:r.usage.input_tokens||0,output:r.usage.output_tokens||0}:null,rulesPrimary:t.primary}}async function Vn(e,t,n={}){let o=A.triageRules(e,t),s=n.client!==void 0?n.client:Ee();if(!s||n.forceRules)return{...o,aiError:null};let a=St(t),r=A.buildFacts(t,["test_status","progress_request"],o.entities),i=At(e,t,r.en,a),d=n.model||ie().model,u={model:d,max_tokens:4096,system:[{type:"text",text:Et,cache_control:{type:"ephemeral"}}],messages:[{role:"user",content:i}],output_config:{effort:"low",format:{type:"json_schema",schema:Tt}}};Hn.has(d)&&(u.betas=["server-side-fallback-2026-07-01"],u.fallbacks="default");try{let c=await s.beta.messages.create(u);if(c.stop_reason==="refusal")throw new Error("Claude declined to draft this message");if(c.stop_reason==="max_tokens")throw new Error("Claude response was cut off");let p=(c.content||[]).filter(f=>f.type==="text").map(f=>f.text).join(""),h=JSON.parse(p);return{...Mt(h,o,e,t,r,i,c),aiError:null}}catch(c){return{...o,aiError:Kn(c),sentToAI:i}}}Nt.exports={DEFAULT_MODEL:_t,SYSTEM_PROMPT:Et,TRIAGE_SCHEMA:Tt,status:Fn,getClient:Ee,buildAliases:St,pseudonymise:Se,reidentify:re,buildUserContent:At,mergeClaudeOutput:Mt,triageMessage:Vn}});var Ct=M((ys,Dt)=>{var qt=K(),{POINTS:Zn}=B(),xt=oe();function Gn(e){let t=e==null?"":String(e),n=/^[=+\-@]/.test(t)&&!/^-?\d+(\.\d+)?$/.test(t)?`'${t}`:t;return/[",\n\r]/.test(n)?`"${n.replace(/"/g,'""')}"`:n}function de(e){return`${e.map(t=>t.map(Gn).join(",")).join(`\r
+`)}\r
+`}var Xn={DONE:"DONE",W:"W",C:"C",BLANK:"\\Blank\\"};function Jn(e){let t=[["Student","Test","Date","Attempt","Question","Syllabus point","Outcome","Marks","Out of"]];return e.markingRecords.forEach(n=>{let o=xt.studentById(e,n.studentId);n.rows.forEach(s=>{t.push([o?o.name:n.studentId,n.testName,n.date,n.attempt,s.q,s.point,Xn[s.outcome]||s.outcome,s.awarded===void 0?"":s.awarded,s.max===void 0?"":s.max])})}),de(t)}function es(e){let t=[["Student","Module","Point","Title","Mastery"]];return e.students.forEach(n=>{let o=e.progress[n.id]||{};Zn.forEach(s=>{t.push([n.name,s.module,s.id,s.title,qt.MASTERY_LABEL[o[s.id]||"not_covered"]])})}),de(t)}function ts(e){let t=xt.examStatsTable(e),n=["Class","Student"];t.modules.forEach(s=>qt.ATTEMPT_SLOTS.forEach(a=>n.push(`Module ${s} ${a}`)));let o=[n];return t.classes.forEach(s=>{s.rows.forEach(a=>{let r=[s.classId,a.student.name];a.cells.forEach(i=>i.attempts.forEach(d=>{r.push(d.pct===null?"":`${d.pct}${d.tutorPass?" *P":""}`)})),o.push(r)})}),de(o)}Dt.exports={toCsv:de,exhibit1:Jn,exhibit2:es,exhibit3:ts}});var Bt=M((bs,Rt)=>{var{MODULES:ns,POINTS:ss,TESTS:Ot}=B(),{isoDate:os}=ce(),H=K(),F=oe(),_=vt(),Pt=It(),Ae=te(),Te=Ct();function Lt(e,t){let n=e.state;return{state:n,views:{briefing:F.buildBriefing(n),report:F.buildDailyReport(n),examTable:F.examStatsTable(n),pendingPapers:F.pendingPapersFor(n)},ai:t,syllabus:{modules:ns,points:ss,tests:Ot},constants:{masteryLabel:H.MASTERY_LABEL,nextSteps:H.NEXT_STEPS,blankReasons:H.BLANK_REASONS,intentLabels:Ae.INTENT_LABELS,routes:Ae.ROUTES,passPct:H.PASS_PCT,lowPct:H.LOW_PCT}}}function as({store:e,triageFn:t=Pt.triageMessage,aiStatus:n=Pt.status,now:o=()=>new Date}){let s=[],a=(d,u,c)=>s.push({method:d,pattern:u,handler:c}),r=d=>(u,c)=>{let p=d(u,c);return e.save(),p};a("GET",/^\/api\/status$/,()=>({ok:!0,ai:n(),today:e.state.today})),a("GET",/^\/api\/state$/,()=>Lt(e,n())),a("GET",/^\/api\/students\/([\w-]+)$/,d=>{let u=F.studentProfile(e.state,d[1]);if(!u)throw new _.ActionError("Unknown student",404);return u}),a("POST",/^\/api\/marking\/preview$/,(d,u)=>_.previewMarking(e.state,u)),a("POST",/^\/api\/marking\/parse$/,(d,u)=>{let c=Ot.find(p=>p.id===u.testId);if(!c)throw new _.ActionError("Unknown test",404);return H.parseQuickEntry(u.text,c)}),a("POST",/^\/api\/marking\/apply$/,r((d,u)=>_.applyMarking(e.state,u,o()))),a("POST",/^\/api\/inbox\/([\w-]+)\/triage$/,async(d,u)=>{let c=e.state.inbox.find(f=>f.id===d[1]);if(!c)throw new _.ActionError("Unknown message",404);let p=F.messageContext(e.state,c),h=u.intent?{...Ae.triageRules(c,p,{forceIntent:u.intent}),aiError:null}:await t(c,p,{forceRules:!!u.forceRules});return _.storeTriage(e.state,c.id,h),e.save(),c}),a("POST",/^\/api\/inbox\/([\w-]+)\/approve$/,r((d,u)=>_.approveMessage(e.state,d[1],u,o()))),a("POST",/^\/api\/timetable\/([\w-]+)\/checkin$/,r(d=>_.checkIn(e.state,d[1],o()))),a("POST",/^\/api\/qa\/log$/,r((d,u)=>_.logQa(e.state,u,o()))),a("POST",/^\/api\/demo-review$/,r((d,u)=>_.demoReview(e.state,u,o()))),a("POST",/^\/api\/sac-answer$/,r((d,u)=>_.recordSacAnswer(e.state,u,o()))),a("POST",/^\/api\/retests\/([\w-]+)\/schedule$/,r((d,u)=>_.resolveRetest(e.state,d[1],u))),a("POST",/^\/api\/handovers\/([\w-]+)\/close$/,r(d=>_.closeHandover(e.state,d[1]))),a("POST",/^\/api\/report\/signoff$/,r((d,u)=>_.signOff(e.state,u,o()))),a("POST",/^\/api\/demo\/simulate$/,r(()=>_.simulateAfternoon(e.state,o()))),a("POST",/^\/api\/reset$/,()=>(e.reset(),{ok:!0}));let i={exhibit1:Te.exhibit1,exhibit2:Te.exhibit2,exhibit3:Te.exhibit3};return async function(u,c,p={}){try{e.state.today!==os(o())&&e.reset();let h=/^\/api\/export\/(exhibit[123])\.csv$/.exec(c);if(h&&u==="GET")return{status:200,csv:i[h[1]](e.state),filename:`${h[1]}-${e.state.today}.csv`};for(let f of s){if(f.method!==u)continue;let k=f.pattern.exec(c);if(k)return{status:200,body:await f.handler(k,p)}}return{status:404,body:{error:"Not found"}}}catch(h){let f=h instanceof _.ActionError?h.status:500;return f===500&&typeof console<"u"&&console.error(h),{status:f,body:{error:f===500?"Internal error":h.message}}}}}Rt.exports={createApi:as,fullState:Lt}});globalThis.process=globalThis.process||{env:{SHIFTMATE_AI:"off"}};var{createApi:rs}=Bt(),{buildSeed:is,isoDate:ds}=ce(),jt="shiftmate-demo-state",Wt={state:null,load(){try{let e=window.localStorage.getItem(jt);e&&(this.state=JSON.parse(e))}catch{this.state=null}(!this.state||this.state.today!==ds(new Date))&&this.reset()},reset(){return this.state=is(new Date),this.save(),this.state},save(){try{window.localStorage.setItem(jt,JSON.stringify(this.state))}catch{}}};Wt.load();var us=rs({store:Wt,aiStatus:()=>({enabled:!1,model:null,reason:"Single-file browser demo (no server)"})});window.SHIFTMATE_LOCAL_API=(e,t,n)=>{let{pathname:o}=new URL(t,"http://local");return us(e,o,n||{})};})();
+</script>
+<script>(()=>{var It=Object.defineProperty;var M=(e,t)=>{for(var s in t)It(e,s,{get:t[s],enumerable:!0})};var W=class{constructor(t){this.s=t}toString(){return this.s}};function Tt(e){return String(e??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}function lt(e){return e instanceof W?e.s:Array.isArray(e)?e.map(lt).join(""):e==null||e===!1||e===!0?"":Tt(e)}function i(e,...t){let s=e[0];return t.forEach((n,a)=>{s+=lt(n)+e[a+1]}),new W(s)}var D={mastered:"Mastered",partial:"Partial",not_understood:"Not understood",not_covered:"Not covered"},Lt={pass:"Pass",mid:"Mid",low:"Low",not_submitted:"Not submitted"};function C(e,t){return i`<span class="mchip m-${e}" title="${D[e]||e}">${t||D[e]||e}</span>`}function ct(e){let t=e.total||1,s=e.counts,n=(a,o,d)=>a?i`<span class="${o}" style="width:${a/t*100}%" title="${d}: ${a}"></span>`:"";return i`<div class="bar" role="img" aria-label="${s.mastered} mastered, ${s.partial} partial, ${s.not_understood} not understood, ${s.not_covered} not covered">
+    ${n(s.mastered,"m-mastered","Mastered")}${n(s.partial,"m-partial","Partial")}${n(s.not_understood,"m-not_understood","Not understood")}${n(s.not_covered,"m-not_covered","Not covered")}
+  </div>`}function P(e,t){return i`<span class="badge ${e==="pass"?"b-pass":e==="mid"?"b-mid":e==="low"?"b-low":"b-none"}">${t||Lt[e]||e}</span>`}function B(e){return i`<span class="oc oc-${e}">${e==="BLANK"?"\\Blank\\":e}</span>`}function _(e,t){let s={on_site:["On site","tone-ok"],expected:["Expected","tone-info"],leave:["On leave","tone-bad"],rescheduled:["Rescheduled","tone-warn"]},[n,a]=s[e]||[e,""];return i`<span class="chip ${a}">${n}</span>${t==="online"&&e!=="leave"?i` <span class="chip tone-warn">Online</span>`:""}`}function F(e){return i`<span class="chip">${{en:"EN",zh:"\u4E2D\u6587",mixed:"\u4E2D/EN"}[e]||e}</span>`}function b(e){return String(e||"").slice(11,16)}function y(e){return e?new Date(`${String(e).slice(0,10)}T00:00:00`).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"}):""}function I(e,t,s){return`${e} ${e===1?t:s||`${t}s`}`}var U={};M(U,{on:()=>Wt,render:()=>Rt});var ut={high:"bad",medium:"warn",low:"info"};function qt(e){return e.alerts.length?i`<section class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Before the first lesson</h2><span class="card-sub">Step 3: changes to confirm and pass on</span></div>
+    ${e.alerts.map(t=>i`<div class="callout tone-${ut[t.level]}">
+      <span class="dot ${ut[t.level]}" style="margin-top:6px"></span>
+      <div class="spacer">${t.text}</div>
+      ${t.messageId?i`<a class="btn btn-xs" href="#/inbox/${t.messageId}">Open message</a>`:""}
+      ${t.kind==="marking"?i`<a class="btn btn-xs" href="#/marking">Mark now</a>`:""}
+      ${t.kind==="inbox"?i`<a class="btn btn-xs" href="#/inbox">Open inbox</a>`:""}
+    </div>`)}
+  </section>`:""}function Nt(e,t){if(!e.teacherNotices.length)return"";let s=n=>(t.data.state.students.find(a=>a.id===n)||{}).name;return i`<section class="card" style="margin-bottom:14px">
+    <div class="card-head"><h2>Passed on to teachers</h2><span class="card-sub">Step 3</span></div>
+    <ul class="list">${e.teacherNotices.map(n=>i`<li><strong>${n.teacher}</strong> · ${b(n.at)} · ${n.text} <span class="faint">(${s(n.studentId)})</span></li>`)}</ul>
+  </section>`}function Ot(e){let t=e.card;return i`<article class="card lesson-card ${e.status==="leave"?"is-leave":""}">
+    <div class="who">
+      <div>
+        <div class="time">${e.start}-${e.end} · ${e.mode==="online"?"Zoom":e.room} · ${e.teacher}</div>
+        <div class="name">${t.student.name}</div>
+        <div class="card-sub">${t.student.classId} · ${t.student.school}</div>
+      </div>
+      <div class="row">${_(e.status,e.mode)}</div>
+    </div>
+    <div class="tag-row" style="margin:10px 0 4px">
+      ${t.scenarios.map(s=>i`<span class="chip ${s.priority?"tone-warn":"tone-info"}" title="Scenario ${s.code} in the brief">${s.code} · ${s.label}</span>`)}
+    </div>
+
+    <div class="section-title">Module ${t.currentModule.id}: ${t.currentModule.name}</div>
+    ${ct(t.currentModule)}
+    <div class="card-sub" style="margin-top:4px">${t.currentModule.masteredPct}% of this Module mastered · whole course ${t.overall.coveredPct}% covered</div>
+
+    ${t.incomplete.length?i`<div class="section-title">Incomplete tests</div>
+      <ul class="list">${t.incomplete.map(s=>i`<li>${s.text}</li>`)}</ul>`:""}
+
+    ${t.sacs.length?i`<div class="section-title">Upcoming SAC</div>
+      ${t.sacs.map(s=>i`<div>
+        ${s.sac.title} · <strong>${y(s.sac.date)}</strong> (${s.daysLeft} days)
+        ${s.ready?i`<span class="chip tone-ok">Ready</span>`:i`<span class="chip tone-warn">Gaps</span>`}
+        <div class="card-sub">${s.plan[0]}</div>
+      </div>`)}`:""}
+
+    ${t.recentMistakes.length||t.careless.length?i`<div class="section-title">Recent mistakes</div>
+      <div class="tag-row">
+        ${t.recentMistakes.map(s=>i`<span class="chip tone-bad" title="${s.title} (${s.test}, Q${s.q})">W ${s.point}</span>`)}
+        ${t.careless.length?i`<span class="chip tone-warn" title="${t.careless.map(s=>`${s.point} (${s.test})`).join(", ")}">${t.careless.length} careless (C)</span>`:""}
+      </div>`:""}
+
+    ${t.talkingPoints.length?i`<div class="section-title">Ask about today (step 5)</div>
+      <ul class="list">${t.talkingPoints.map(s=>i`<li>${s}</li>`)}</ul>`:""}
+
+    <div class="row" style="margin-top:12px">
+      ${e.status==="expected"&&e.mode==="in_person"?i`<button class="btn btn-sm" data-action="checkin" data-id="${e.id}">Check in</button>`:""}
+      <a class="btn btn-sm btn-ghost" href="#/records/${t.student.id}">Open records</a>
+    </div>
+  </article>`}function Rt(e){let{briefing:t}=e.data.views,{state:s}=e.data,n=t.counts,a=s.inbox.filter(d=>d.status!=="sent").length,o=(d,r)=>i`<div class="card stat"><div class="num">${d}</div><div class="lbl">${r}</div></div>`;return i`
+    <div class="page-head">
+      <div>
+        <div class="kicker">14:15-14:30 · Phase 2 · Steps 2-5</div>
+        <h1>Shift briefing</h1>
+        <p>Today's timetable, attendance changes still sitting in WeChat, and a prep card for every student, read from the Progress Sheet (Exhibit 2) and Exam Statistics (Exhibit 3). Built automatically, so the tutor no longer opens each record by hand.</p>
+      </div>
+    </div>
+    <div class="stats">
+      ${o(n.lessons,"Lessons today")}
+      ${o(n.onSite,"On site now")}
+      ${o(n.expectedInPerson,"Expected in person")}
+      ${o(n.online,"Online")}
+      ${o(n.leave,"On leave")}
+      ${o(a,"WeChat waiting")}
+      ${o(s.pendingPapers.length,"Papers to mark")}
+    </div>
+    ${qt(t)}
+    ${Nt(t,e)}
+    <div class="cards">${t.lessons.map(d=>Ot(d))}</div>`}async function Wt(e,t,s,n,a){e==="click"&&t==="checkin"&&await a.run(()=>a.api.post(`/api/timetable/${s.dataset.id}/checkin`),"Checked in")&&a.refresh()}var V={};M(V,{mount:()=>Ft,on:()=>Ut,render:()=>zt,resetLocal:()=>K});var h={busy:new Set,drafts:{},checks:{}};function K(){h.busy.clear(),h.drafts={},h.checks={}}var Dt={today:["Today","tone-bad"],soon:["Soon","tone-warn"],low:["Low",""]},Bt={new:["New","tone-info"],triaged:["Draft ready","tone-warn"],sent:["Sent","tone-ok"]};function pt(e,t){let s=e.data.state.students.find(n=>n.id===t.studentId);return s?t.relation==="parent"?`${s.parent.name} (${s.name}'s ${s.parent.relation})`:s.name:t.studentId}function ht(e,t){let s=e.data.state.inbox;if(t[0]&&s.some(a=>a.id===t[0]))return t[0];let n=s.find(a=>a.status!=="sent");return n?n.id:s[0]&&s[0].id}function _t(e,t,s){let[n,a]=Bt[t.status]||[t.status,""],o=t.triage&&t.triage.urgency==="today"&&t.status!=="sent";return i`<button class="msg-item ${s?"active":""} ${t.status==="sent"?"is-sent":""}" data-action="select" data-id="${t.id}">
+    <div class="meta">
+      <strong>${pt(e,t)}</strong>
+      <span class="faint mono">${b(t.receivedAt)}</span>
+    </div>
+    <div class="preview">${t.text}</div>
+    <div class="row" style="margin-top:6px">
+      <span class="chip ${a}">${n}</span>
+      ${F(t.lang)}
+      ${h.busy.has(t.id)?i`<span class="spinner" aria-label="Drafting"></span>`:""}
+      ${o?i`<span class="chip tone-bad">Today</span>`:""}
+    </div>
+  </button>`}function Qt(e){let t=e.triage;if(!t.actions.length)return i`<p class="muted">No records change. The reply is the whole job.</p>`;let s=h.checks[e.id]||new Set(t.actions.map((n,a)=>a));return h.checks[e.id]=s,i`${t.actions.map((n,a)=>i`<label class="check">
+    <input type="checkbox" data-action="toggle-action" data-index="${a}" ${s.has(a)?i`checked`:""}>
+    <span>${n.label}</span>
+  </label>`)}`}function Ht(e,t){let s=t.triage,n=e.data.constants,[a,o]=Dt[s.urgency]||[s.urgency,""],d=h.drafts[t.id]!==void 0?h.drafts[t.id]:s.draft,r=s.replyLanguage==="zh"?"\u4E2D\u6587":"English",c=s.mode==="claude"?`Claude (${s.model})`:"Rules engine (offline)";return i`
+    <div class="section-title">${s.mode==="claude"?"What Claude read":"What the rules engine read"}</div>
+    <p style="font-size:15px"><strong>${s.summary}</strong></p>
+    <div class="row" style="margin-top:8px">
+      ${s.intents.map((u,v)=>i`<span class="chip ${v===0?"tone-dark":""}">${n.intentLabels[u]||u}</span>`)}
+      <span class="chip ${o}">Urgency: ${a}</span>
+      <span class="conf">Confidence <span class="bar"><span style="width:${Math.round(s.confidence*100)}%"></span></span> ${Math.round(s.confidence*100)}%</span>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <span class="muted">Route:</span> <strong>${n.routes[s.route]||s.route}</strong>
+      <span class="spacer"></span>
+      <label class="row muted" style="gap:6px">Wrong category?
+        <select data-action="recategorise" style="width:auto">
+          <option value="">Choose...</option>
+          ${Object.entries(n.intentLabels).map(([u,v])=>i`<option value="${u}">${v}</option>`)}
+        </select>
+      </label>
+    </div>
+    ${s.recategorisedByTutor?i`<div class="callout tone-info" style="margin-top:10px">Re-categorised by you. Draft rebuilt by the rules engine.</div>`:""}
+    ${s.aiError?i`<div class="callout tone-info" style="margin-top:10px"><span class="icon">i</span><div>Claude was not used: ${s.aiError}. Drafted by the offline rules engine instead.</div></div>`:""}
+    ${s.needsTutor.length?i`<div style="margin-top:10px">${s.needsTutor.map(u=>i`<div class="callout tone-warn"><span class="icon">!</span><div>${u}</div></div>`)}</div>`:""}
+
+    <div class="grid grid-2" style="margin-top:14px">
+      <div>
+        <div class="row-between"><div class="section-title" style="margin:0">Draft reply · ${r}</div><span class="faint" style="font-size:12px">${c}</span></div>
+        <textarea data-action="edit-draft" rows="7" style="margin-top:6px" aria-label="Draft reply">${d}</textarea>
+        ${s.factWarnings.length?s.factWarnings.map(u=>i`<div class="callout tone-bad" style="margin-top:6px"><span class="icon">!</span><div>Fact check: ${u}. Edit before sending.</div></div>`):i`<div class="faint" style="font-size:12px;margin-top:4px">Fact check passed: every percentage in the draft is in the records.</div>`}
+      </div>
+      <div>
+        <div class="section-title" style="margin-top:0">Facts from the records</div>
+        <ul class="list" style="font-size:13px">${s.facts.en.map(u=>i`<li>${u}</li>`)}</ul>
+        ${s.tutorHint?i`<div class="section-title">For you, not sent</div><div class="callout tone-info"><div>${s.tutorHint}</div></div>`:""}
+      </div>
+    </div>
+
+    <div class="section-title">When you approve</div>
+    ${Qt(t)}
+
+    <details style="margin-top:10px">
+      <summary>Privacy: what left the centre for this draft</summary>
+      ${s.sentToAI?i`<p class="muted" style="margin-bottom:6px">Names, parent and school replaced by placeholders before sending. Real names are put back only on this screen.</p><div class="sent-to-ai">${s.sentToAI}</div>`:i`<p class="muted">Nothing. This draft was made by the offline rules engine on this computer.</p>`}
+    </details>
+
+    <div class="row" style="margin-top:16px">
+      <button class="btn btn-primary" data-action="approve">Approve, apply and copy reply</button>
+      <button class="btn" data-action="redraft">Redraft</button>
+      ${s.mode==="claude"?i`<button class="btn btn-ghost" data-action="redraft-rules">Redraft with rules only</button>`:""}
+    </div>`}function jt(e,t){if(!t)return i`<div class="card"><p class="muted">No messages.</p></div>`;let s=e.data.state.students.find(a=>a.id===t.studentId),n=h.busy.has(t.id);return i`<section class="card">
+    <div class="card-head">
+      <div>
+        <h2>${pt(e,t)}</h2>
+        <div class="card-sub">${t.channel} · ${b(t.receivedAt)} · ${t.relation==="parent"?"Parent":"Student"} · ${s.classId}</div>
+      </div>
+      <div class="row">${F(t.lang)}<a class="btn btn-xs btn-ghost" href="#/records/${s.id}">Records</a></div>
+    </div>
+    <div class="bubble" lang="${t.lang==="en"?"en":"zh"}">${t.text}</div>
+    ${t.status==="sent"?i`
+      <div class="section-title">Your reply · sent ${b(t.sentAt)}</div>
+      <div class="bubble out">${t.reply}</div>
+      ${t.appliedActions&&t.appliedActions.length?i`<div class="section-title">Applied</div><ul class="list">${t.appliedActions.map(a=>i`<li>${a}</li>`)}</ul>`:""}
+    `:n?i`<div class="row" style="margin-top:16px"><span class="spinner"></span><span class="muted">${e.data.ai.enabled?"Claude is reading the message and the records...":"Reading the message and the records..."}</span></div>`:t.triage?Ht(e,t):i`<div class="row" style="margin-top:16px"><button class="btn btn-primary" data-action="triage">Draft a reply</button></div>`}
+  </section>`}function zt(e,t){let{inbox:s}=e.data.state,n=ht(e,t),a=s.find(r=>r.id===n),o=s.filter(r=>r.status==="new").length,d=s.filter(r=>r.status!=="sent").length;return i`
+    <div class="page-head">
+      <div>
+        <div class="kicker">14:30-16:00 · Phase 3A · Steps 6-7</div>
+        <h1>WeChat inbox</h1>
+        <p>Every message is classified, matched to the student's records and given a draft reply in the sender's language. Simple status questions are answered from the records; maths, fees and judgement calls are routed. Nothing is sent until you approve it.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn" data-action="triage-all" ${o?"":i`disabled`}>Draft all new (${o})</button>
+      </div>
+    </div>
+    <div class="inbox">
+      <div class="card msg-list">
+        <div class="row-between" style="padding:6px 8px 8px"><strong>${d} open</strong><span class="faint">${s.length} today</span></div>
+        ${s.map(r=>_t(e,r,r.id===n))}
+      </div>
+      <div id="inbox-detail" data-id="${n}">${jt(e,a)}</div>
+    </div>`}async function Q(e,t,s={}){h.busy.add(t),delete h.drafts[t],delete h.checks[t],e.route.page==="inbox"&&e.navigate(`#/inbox/${t}`);try{await e.api.post(`/api/inbox/${t}/triage`,s)}catch(n){e.toast(n.message,"bad")}finally{h.busy.delete(t)}await e.refresh()}function Ft(e,t,s){let n=ht(t,s),a=t.data.state.inbox.find(o=>o.id===n);a&&!a.triage&&a.status!=="sent"&&!h.busy.has(n)&&Q(t,n)}async function Ut(e,t,s,n,a){let o=document.getElementById("inbox-detail"),d=o?o.dataset.id:null;if(e==="input"&&t==="edit-draft"){h.drafts[d]=s.value;return}if(e==="change"&&t==="toggle-action"){let r=h.checks[d]||new Set,c=Number(s.dataset.index);s.checked?r.add(c):r.delete(c),h.checks[d]=r;return}if(e==="change"&&t==="recategorise"&&s.value){await Q(a,d,{intent:s.value});return}if(e==="click"){if(t==="select")a.navigate(`#/inbox/${s.dataset.id}`);else if(t==="triage"||t==="redraft")await Q(a,d);else if(t==="redraft-rules")await Q(a,d,{forceRules:!0});else if(t==="triage-all"){let r=a.data.state.inbox.filter(c=>c.status==="new").map(c=>c.id);r.forEach(c=>h.busy.add(c)),a.refresh();for(let c of r){try{await a.api.post(`/api/inbox/${c}/triage`,{})}catch(u){a.toast(u.message,"bad")}h.busy.delete(c)}await a.refresh(),a.toast(`${r.length} drafts ready for review`)}else if(t==="approve"){let r=a.data.state.inbox.find(p=>p.id===d),c=h.drafts[d]!==void 0?h.drafts[d]:r.triage.draft,u=h.checks[d]||new Set(r.triage.actions.map((p,g)=>g));if(!await a.run(()=>a.api.post(`/api/inbox/${d}/approve`,{reply:c,actions:[...u]})))return;let S=await a.copy(c);a.toast(S?"Reply copied: paste it into Work WeChat":"Approved. Copy the reply into Work WeChat"),delete h.drafts[d],delete h.checks[d],await a.refresh();let f=a.data.state.inbox.find(p=>p.status!=="sent");f&&a.navigate(`#/inbox/${f.id}`)}}}var X={};M(X,{mount:()=>te,on:()=>ee,render:()=>Xt,resetLocal:()=>J});var Kt=[{o:"DONE",label:"\u2713",key:"d",title:"DONE: correct"},{o:"W",label:"W",key:"w",title:"W: wrong (knowledge gap)"},{o:"C",label:"C",key:"c",title:"C: careless error"},{o:"BLANK",label:"\u2014",key:"b",title:"Blank: not attempted"}],mt={d:"DONE",v:"DONE",1:"DONE",w:"W",x:"W",c:"C",b:"BLANK","-":"BLANK",0:"BLANK"},gt={high:"bad",medium:"warn",low:"info"},l=w(null);function w(e){return{paperId:e?e.id:null,outcomes:{},partial:{},timing:e?{...e.timing}:{},blanks:{},action:null,tutorPass:!1,addQa:!0,note:"",focusIdx:0,quick:"",quickInfo:null,preview:null,seq:0,result:null}}function J(){l=w(null)}function x(e){return e.data.views.pendingPapers}function A(e){return x(e).find(t=>t.id===l.paperId)||null}function q(e,t){return e.data.syllabus.tests.find(s=>s.id===t.testId)}function Y(e,t){let s=e.data.syllabus.points.find(n=>n.id===t);return s?s.title:""}function Vt(e){let t=x(e),s=e.data.state.markingRecords.filter(a=>a.source==="shiftmate"&&a.date===e.data.state.today),n=a=>(e.data.state.students.find(o=>o.id===a)||{}).name;return i`<div class="paper-strip" aria-label="Submitted papers">
+    ${t.map(a=>i`<button class="paper-item ${a.id===l.paperId?"active":""}" data-action="pick" data-id="${a.id}">
+      <strong>${a.student.name}</strong>
+      <div>${a.testName}</div>
+      <div class="card-sub">${I(a.questions,"question")} · sat ${a.submittedDay}</div>
+    </button>`)}
+    ${s.map(a=>i`<div class="paper-item done">
+      <strong>${n(a.studentId)}</strong>
+      <div>${a.testName}</div>
+      <div class="card-sub">Marked ${P(a.band,`${a.pct}%`)}</div>
+    </div>`)}
+    ${t.length?"":i`<div class="paper-item done"><strong>All marked</strong><div class="card-sub">No papers waiting</div></div>`}
+  </div>`}function Gt(e,t,s){return i`<table class="pad-table">
+    <thead><tr><th>Q</th><th>Syllabus point</th><th class="num">Marks</th><th>Outcome</th><th title="Optional: award part marks, e.g. method marks on a careless error">Part</th></tr></thead>
+    <tbody>
+      ${s.questions.map((n,a)=>{let o=l.outcomes[n.q];return i`<tr class="${a===l.focusIdx?"focused":""}" data-action="focus-row" data-idx="${a}">
+          <td><strong>${n.q}</strong></td>
+          <td class="pt" title="${n.point} ${Y(e,n.point)}"><span class="mono">${n.point}</span> <span class="muted" style="font-size:12px">${Y(e,n.point)}</span></td>
+          <td class="num">${n.marks}</td>
+          <td><div class="seg" role="group" aria-label="Outcome for question ${n.q}">
+            ${Kt.map(d=>i`<button type="button" class="${o===d.o?`on-${d.o}`:""}" title="${d.title} (key ${d.key})" aria-pressed="${o===d.o}" data-action="set" data-q="${n.q}" data-o="${d.o}">${d.label}</button>`)}
+          </div></td>
+          <td><input class="pm" type="number" min="0" max="${n.marks}" step="1" placeholder="-" value="${l.partial[n.q]===void 0?"":l.partial[n.q]}" data-action="partial" data-q="${n.q}" aria-label="Part marks for question ${n.q}"></td>
+        </tr>`})}
+    </tbody>
+  </table>`}function ft(e){let t=A(e);if(!t)return l.result?i`<section class="card"><h2>Paper recorded</h2><p class="muted" style="margin-top:6px">${l.result.record.testName} is now in all three sheets. Pick the next paper above, or press "Mark next paper".</p></section>`:i`<section class="card"><h2>Choose a paper</h2><p class="muted" style="margin-top:6px">Pick a submitted test above to start marking.</p></section>`;let s=q(e,t),n=s.questions.filter(o=>l.outcomes[o.q]).length,a=l.quickInfo;return i`<section class="card" id="mk-pad">
+    <div class="card-head">
+      <div>
+        <h2>${t.student.name} · ${s.name}</h2>
+        <div class="card-sub">${s.kind==="module"?`Module ${s.module} \xB7 `:"VCAA practice exam \xB7 "}${s.timeLimitMin} min · sat ${t.submittedDay}</div>
+      </div>
+      <span class="chip ${n===s.questions.length?"tone-ok":""}">${n}/${s.questions.length} marked</span>
+    </div>
+
+    <label class="field">Quick entry: type or paste the marks as you read the paper
+      <div class="row" style="flex-wrap:nowrap">
+        <input type="text" data-action="quick" value="${l.quick}" placeholder="e.g.  ✓ w ✓ ✓ c -   or   1 ✓, 2 x, 6a done, 8 blank" autocomplete="off">
+        <button class="btn btn-sm" data-action="quick-apply">Read</button>
+      </div>
+    </label>
+    ${a?i`<div class="callout ${a.unknown.length||a.missing.length?"tone-warn":"tone-ok"}" style="margin-top:6px">
+      <div>Read ${Object.keys(a.outcomes).length} mark(s) (${a.mode} format).
+        ${a.unknown.length?i` Could not read: <strong>${a.unknown.join(", ")}</strong>.`:""}
+        ${a.missing.length?i` Still to mark: Q${a.missing.join(", Q")}.`:""}</div>
+    </div>`:""}
+    <div class="row" style="margin:8px 0 10px">
+      <button class="btn btn-xs btn-ghost" data-action="sample" title="Fills the marks the tutor wrote on this demo paper">Fill demo marks</button>
+      <button class="btn btn-xs btn-ghost" data-action="clear">Clear</button>
+      <span class="spacer"></span>
+      <span class="faint" style="font-size:12px">Keys: <span class="kbd">D</span> ✓ <span class="kbd">W</span> wrong <span class="kbd">C</span> careless <span class="kbd">B</span> blank <span class="kbd">↑↓</span></span>
+    </div>
+    ${Gt(e,t,s)}
+
+    <div class="section-title">Exam timing (Scenario C, step 5)</div>
+    <div class="grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
+      <label class="field">Start<input type="text" inputmode="numeric" placeholder="16:05" data-action="timing" data-k="start" value="${l.timing.start||""}"></label>
+      <label class="field">End, 1st pass<input type="text" inputmode="numeric" placeholder="16:52" data-action="timing" data-k="end1" value="${l.timing.end1||""}"></label>
+      <label class="field">End, 2nd pass<input type="text" inputmode="numeric" placeholder="16:58" data-action="timing" data-k="end2" value="${l.timing.end2||""}"></label>
+      <label class="field">Checks<input type="number" min="0" max="9" data-action="timing" data-k="checks" value="${l.timing.checks===void 0?"":l.timing.checks}"></label>
+    </div>
+  </section>`}function Yt(e,t,s){let n=t.exhibit2.changes.filter(r=>r.changed),a=t.exhibit2.changes.filter(r=>!r.changed),o=t.exhibit2.summaryBefore,d=t.exhibit2.summaryAfter;return i`
+    <div class="section-title">What will be written</div>
+    <div class="card" style="box-shadow:none;padding:12px">
+      <div class="row-between"><strong><span class="exhibit-tag">Exhibit 1</span> Marking Sheet</strong><span class="card-sub">${t.exhibit1.length} rows</span></div>
+      <div class="tag-row" style="margin-top:8px">
+        ${t.exhibit1.map(r=>i`<span class="chip" title="${r.point} ${Y(e,r.point)}">Q${r.q} ${B(r.outcome)}</span>`)}
+      </div>
+    </div>
+    <div class="card" style="box-shadow:none;padding:12px;margin-top:8px">
+      <div class="row-between"><strong><span class="exhibit-tag">Exhibit 2</span> Progress Sheet</strong><span class="card-sub">${I(n.length,"point")} change</span></div>
+      <div style="margin-top:6px">
+        ${n.map(r=>i`<div class="diff-row">
+          <span class="mono">${r.point}</span>
+          <span><span style="font-size:12.5px">${r.title}</span><br><span class="faint" style="font-size:12px">${r.evidence.map(c=>`Q${c.q}: ${c.reason}`).join(" \xB7 ")}</span></span>
+          <span>${C(r.before)}<span class="arrow">→</span>${C(r.after)}</span>
+        </div>`)}
+        ${a.length?i`<details><summary>${I(a.length,"point")} unchanged</summary>
+          ${a.map(r=>i`<div class="diff-row unchanged"><span class="mono">${r.point}</span><span style="font-size:12.5px">${r.evidence.map(c=>`Q${c.q}: ${c.reason}`).join(" \xB7 ")}</span><span>${C(r.after)}</span></div>`)}
+        </details>`:""}
+      </div>
+      ${o&&d?i`<div class="card-sub" style="margin-top:6px">Mastered in covered points: ${o.masteredOfCoveredPct}% → <strong>${d.masteredOfCoveredPct}%</strong> · course covered ${o.coveredPct}% → ${d.coveredPct}%</div>`:""}
+    </div>
+    <div class="card" style="box-shadow:none;padding:12px;margin-top:8px">
+      <div class="row-between"><strong><span class="exhibit-tag">Exhibit 3</span> Exam Statistics</strong></div>
+      ${t.exhibit3?i`<p style="margin-top:6px">Module ${t.exhibit3.module}, attempt <strong>${t.exhibit3.slot||"none left"}</strong>: ${P(t.exhibit3.band,`${t.exhibit3.pct}%${l.tutorPass&&t.exhibit3.pct<e.data.constants.passPct?" *P":""}`)} <span class="faint">(was: ${t.exhibit3.statusBefore.replace("_"," ")})</span></p>`:i`<p class="muted" style="margin-top:6px">VCAA practice exams are not Module Tests, so Exhibit 3 is unchanged.</p>`}
+    </div>
+    <div class="card" style="box-shadow:none;padding:12px;margin-top:8px">
+      <div class="row-between"><strong><span class="exhibit-tag">Log</span> Student exam log</strong></div>
+      <p style="margin-top:6px" class="mono">${t.examLog.paper} · ${t.examLog.start||"--:--"} → ${t.examLog.end1||"--:--"} → ${t.examLog.end2||"--:--"} · ${t.examLog.checks===""?"?":t.examLog.checks} check(s) · ${t.examLog.pct}%</p>
+    </div>`}function Zt(e,t,s){let n=e.data.constants.nextSteps,a=s.kind==="vcaa"?["next_mock","targeted_practice"]:["move_on","schedule_retest","redo_demo","revise_module","escalate_teacher"],o=l.action||t.suggestion.action,d=t.score.pct<e.data.constants.passPct;return i`
+    <div class="section-title">Next step (Scenario C, step 4): your call</div>
+    <div class="callout tone-info"><div><strong>Suggested: ${t.suggestion.label}</strong><ul class="list" style="margin-top:4px">${t.suggestion.reasons.map(r=>i`<li>${r}</li>`)}</ul></div></div>
+    <div class="radio-list" style="margin-top:8px">
+      ${a.map(r=>i`<label class="${r===t.suggestion.action?"suggested":""}">
+        <input type="radio" name="next" value="${r}" data-action="decide" ${o===r?i`checked`:""}>
+        <span>${n[r]} ${r===t.suggestion.action?i`<span class="chip tone-info">Suggested</span>`:""}</span>
+      </label>`)}
+    </div>
+    ${s.kind==="module"&&d?i`<label class="check"><input type="checkbox" data-action="tutor-pass" ${l.tutorPass?i`checked`:""}>
+      <span>Pass on tutor judgement (recorded as <strong>${t.score.pct}% *P</strong> in Exhibit 3)</span></label>`:""}
+    ${t.suggestion.gapPoints.length?i`<label class="check"><input type="checkbox" data-action="add-qa" ${l.addQa?i`checked`:""}>
+      <span>Add ${t.suggestion.gapPoints.join(", ")} to the Q&A list for the exam review</span></label>`:""}`}function $t(e){let t=A(e);if(l.result)return Jt(e);if(!t)return i`<section class="card"><h2>One entry, three sheets</h2>
+      <p class="muted" style="margin-top:6px">Today the same marking result is typed into the Marking Sheet, re-coloured cell by cell in the Progress Sheet and entered again in the Exam Statistics. Here the tutor marks once and ShiftMate prepares all three updates for one confirmation.</p></section>`;let s=q(e,t),n=l.preview,a=s.questions.filter(u=>l.outcomes[u.q]).length;if(a<s.questions.length)return i`<section class="card">
+      <h2>What will change</h2>
+      <p class="muted" style="margin-top:6px">${s.questions.length-a} question(s) to go. The preview of all three sheets appears when every question has a mark.</p>
+      <div class="bar" style="margin-top:12px;height:10px"><span class="m-mastered" style="width:${a/s.questions.length*100}%"></span></div>
+    </section>`;if(!n)return i`<section class="card"><div class="row"><span class="spinner"></span><span class="muted">Working out the changes...</span></div></section>`;let o=n.plan,d=o.blanks.trailing.concat(o.blanks.isolated),r=d.filter(u=>!l.blanks[u]),c=e.data.constants.blankReasons;return i`<section class="card">
+    <div class="card-head">
+      <div class="score-big"><span class="num">${o.score.score} / ${o.score.total}</span><span style="font-size:18px;font-weight:700">${o.score.pct}%</span></div>
+      ${P(o.score.band)}
+    </div>
+
+    ${d.length?i`<div class="section-title">Why was it left blank? (needs you)</div>
+      ${d.map(u=>{let v=o.blanks.trailing.includes(u)?"at the end of the paper":"mid-paper, later questions answered",S=o.blanks.suggestions[u];return i`<div style="margin-bottom:8px"><div><strong>Q${u}</strong> <span class="muted">(${v})</span></div>
+          <div class="row" style="margin-top:4px">${Object.entries(c).map(([f,p])=>i`<label class="chip ${l.blanks[u]===f?"tone-dark":""}" style="cursor:pointer">
+            <input type="radio" name="blank-${u}" value="${f}" data-action="blank" data-q="${u}" ${l.blanks[u]===f?i`checked`:""} style="display:none">${p}${S===f?" \xB7 suggested":""}</label>`)}</div>
+        </div>`})}`:""}
+
+    ${o.issues.length?i`<div class="section-title">What the paper shows (Scenario C, step 2)</div>
+      ${o.issues.map(u=>i`<div class="callout tone-${gt[u.severity]}"><span class="dot ${gt[u.severity]}" style="margin-top:6px"></span><div><strong>${u.label}</strong><br><span style="font-size:12.5px">${u.detail}</span></div></div>`)}`:i`<div class="callout tone-ok" style="margin-top:8px">Clean paper: no gaps, careless errors or timing problems.</div>`}
+
+    ${Zt(e,o,s)}
+    ${Yt(e,o,s)}
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn btn-primary" data-action="apply" ${r.length?i`disabled title="Say why each blank was left first"`:""}>Apply to all three sheets</button>
+      <span class="muted" style="font-size:12.5px">${r.length?`Answer the blank question${r.length>1?"s":""} above first.`:"By hand: about 6 minutes across three spreadsheets."}</span>
+    </div>
+  </section>`}function Jt(e){let t=l.result;return i`<section class="card">
+    <div class="card-head"><h2>Written to all three sheets</h2><span class="chip tone-ok">Done</span></div>
+    <ul class="list">
+      <li><span class="exhibit-tag">Exhibit 1</span> ${t.summary.exhibit1Rows} rows added to the Marking Sheet</li>
+      <li><span class="exhibit-tag">Exhibit 2</span> ${I(t.summary.exhibit2Changed,"point")} re-coloured in the Progress Sheet</li>
+      <li><span class="exhibit-tag">Exhibit 3</span> ${t.summary.exhibit3||"Not a Module Test: no change"}</li>
+      <li><span class="exhibit-tag">Log</span> Exam log entry added</li>
+      <li>Decision recorded: <strong>${t.record.decision.label}</strong>${t.record.decision.tutorPass?" (tutor pass)":""}</li>
+    </ul>
+    <div class="section-title">Result note for the parent (${t.parentNoteLang==="zh"?"\u4E2D\u6587":"English"}) · you send it</div>
+    <textarea id="parent-note" rows="5">${t.parentNote}</textarea>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" data-action="copy-note">Copy note</button>
+      <button class="btn btn-primary" data-action="next">Mark next paper</button>
+      <a class="btn btn-ghost" href="#/records/${t.record.studentId}">Open records</a>
+    </div>
+  </section>`}function Xt(e,t){return t[0]&&t[0]!==l.paperId&&x(e).some(s=>s.id===t[0])&&(l=w(x(e).find(s=>s.id===t[0]))),!l.result&&l.paperId&&!A(e)&&(l=w(null)),!l.paperId&&!l.result&&x(e).length&&(l=w(x(e)[0])),i`
+    <div class="page-head">
+      <div>
+        <div class="kicker">14:30-16:00 · Phase 3B · Step 8</div>
+        <h1>Mark once</h1>
+        <p>Mark each question once. ShiftMate writes the Marking Sheet, re-colours the Progress Sheet, fills the Exam Statistics and the exam log, and separates knowledge gaps (W) from careless errors (C). All rules, no AI: you confirm every change.</p>
+      </div>
+    </div>
+    ${Vt(e)}
+    <div class="marking">
+      <div id="mk-pad-wrap">${ft(e)}</div>
+      <div class="mk-preview" id="mk-preview">${$t(e)}</div>
+    </div>`}function T(e){let t=document.getElementById("mk-pad-wrap");t&&(t.innerHTML=String(ft(e)))}function L(e){let t=document.getElementById("mk-preview");t&&(t.innerHTML=String($t(e)))}function bt(){return{paperId:l.paperId,outcomes:l.outcomes,partialMarks:l.partial,timing:l.timing,blankResolutions:l.blanks}}var vt=null;function E(e){clearTimeout(vt),vt=setTimeout(async()=>{let t=A(e);if(!t)return;if(q(e,t).questions.some(a=>!l.outcomes[a.q])){l.preview=null,L(e);return}let n=++l.seq;try{let a=await e.api.post("/api/marking/preview",bt());if(n!==l.seq)return;l.preview=a,l.action||(l.action=null),L(e)}catch(a){e.toast(a.message,"bad")}},120)}function te(e,t){E(t)}function Z(e,t,s){l.outcomes[t]=s,s!=="BLANK"&&delete l.blanks[t],l.result=null}async function G(e){let t=A(e);if(!t)return;let s=await e.run(()=>e.api.post("/api/marking/parse",{testId:t.testId,text:l.quick}));s&&(l.quickInfo=s,Object.entries(s.outcomes).forEach(([n,a])=>Z(e,n,a)),T(e),E(e))}async function ee(e,t,s,n,a){let o=A(a);if(e==="keydown"){let d=n.target.tagName;if(n.target.dataset.action==="quick"&&n.key==="Enter"){n.preventDefault(),await G(a);return}if(!o||l.result||d==="INPUT"||d==="TEXTAREA"||d==="SELECT"||n.metaKey||n.ctrlKey||n.altKey)return;let r=q(a,o),c=n.key.toLowerCase();if(c==="arrowdown"||c==="j")l.focusIdx=Math.min(r.questions.length-1,l.focusIdx+1);else if(c==="arrowup"||c==="k")l.focusIdx=Math.max(0,l.focusIdx-1);else if(mt[c])Z(a,r.questions[l.focusIdx].q,mt[c]),l.focusIdx=Math.min(r.questions.length-1,l.focusIdx+1),E(a);else return;n.preventDefault(),T(a);return}if(e==="input"){t==="quick"&&(l.quick=s.value),t==="partial"&&(s.value===""?delete l.partial[s.dataset.q]:l.partial[s.dataset.q]=Number(s.value),E(a)),t==="timing"&&(l.timing[s.dataset.k]=s.dataset.k==="checks"?s.value===""?"":Number(s.value):s.value,E(a));return}if(e==="change"){t==="blank"?(l.blanks[s.dataset.q]=s.value,E(a)):t==="decide"?(l.action=s.value,L(a)):t==="tutor-pass"?(l.tutorPass=s.checked,L(a)):t==="add-qa"&&(l.addQa=s.checked);return}if(e==="click")if(t==="pick")l=w(x(a).find(d=>d.id===s.dataset.id)),a.navigate(`#/marking/${s.dataset.id}`);else if(t==="set"){let d=q(a,o);Z(a,s.dataset.q,s.dataset.o),l.focusIdx=Math.min(d.questions.length-1,d.questions.findIndex(r=>r.q===s.dataset.q)+1),T(a),E(a)}else if(t==="focus-row"){if(n.target.closest("button, input"))return;l.focusIdx=Number(s.dataset.idx),T(a)}else if(t==="quick-apply")await G(a);else if(t==="sample")l.quick=o.sampleMarks||"",await G(a);else if(t==="clear")l=w(o),T(a),L(a);else if(t==="apply"){let d=l.preview&&l.preview.plan,r={...bt(),decision:{action:l.action||d.suggestion.action,tutorPass:l.tutorPass,addQa:l.addQa,note:l.note}},c=await a.run(()=>a.api.post("/api/marking/apply",r));if(!c)return;l.result=c,l.paperId=null,a.toast("Exhibits 1, 2 and 3 updated in one step"),await a.refresh()}else if(t==="copy-note"){let d=document.getElementById("parent-note").value;a.toast(await a.copy(d)?"Note copied for WeChat":"Select the text and copy it")}else t==="next"&&(l=w(x(a)[0]||null),a.navigate(l.paperId?`#/marking/${l.paperId}`:"#/marking"),l.paperId||a.refresh())}var tt={};M(tt,{on:()=>oe,render:()=>ie});var yt=[["working","Working shown clearly"],["accuracy","Accurate answers"],["method","Right choice of method"],["concepts","Grasps the core concepts"]];function xt(e,t){return e.data.state.students.find(s=>s.id===t)}function se(e,t,s){let n=e.data.syllabus.points.filter(o=>o.module===s),a=e.data.state.progress[t.id]||{};return i`<form class="modal-body" data-form="demo" onsubmit="return false">
+    <h2>Demo check: ${t.name}, Module ${s}</h2>
+    <p class="muted" style="margin:4px 0 12px">Scenario A, step 4. The student did the Demo without recordings, answers or notes. Tick what you saw. The decision is yours.</p>
+    ${yt.map(([o,d])=>i`<label class="check"><input type="checkbox" name="${o}"><span>${d}</span></label>`)}
+    <div class="section-title">Decision</div>
+    <div class="radio-list">
+      <label><input type="radio" name="outcome" value="meets"><span><strong>Meets the standard</strong>: book the Module ${s} Test</span></label>
+      <label><input type="radio" name="outcome" value="not_yet"><span><strong>Not yet</strong>: re-watch, correct, extra practice, review again</span></label>
+    </div>
+    <div class="section-title">If not yet: points to re-watch</div>
+    <div class="tag-row">${n.map(o=>i`<label class="chip" style="cursor:pointer" title="${o.title}"><input type="checkbox" name="pt" value="${o.id}" style="margin:0 4px 0 0">${o.id} ${C(a[o.id]||"not_covered"," ")}</label>`)}</div>
+    <label class="field" style="margin-top:12px">Note<input type="text" name="note" placeholder="Optional"></label>
+  </form>
+  <div class="modal-foot">
+    <button class="btn" data-action="close">Cancel</button>
+    <button class="btn btn-primary" data-action="save-demo" data-student="${t.id}" data-module="${s}">Save decision</button>
+  </div>`}function ae(e,t,s){return s.sacs.length?i`${s.sacs.map(n=>i`<div class="section-title">Scenario B · ${n.sac.title} · ${y(n.sac.date)} (${n.daysLeft} days)</div>
+    <table>
+      <thead><tr><th>Module</th><th>Module Test</th><th class="num">Mastered</th><th>Status</th></tr></thead>
+      <tbody>${n.modules.map(a=>i`<tr>
+        <td>${a.module} · ${a.name}</td>
+        <td>${a.testStatus.replace(/_/g," ")}</td>
+        <td class="num">${a.masteredPct}%</td>
+        <td>${a.readiness==="ready"?i`<span class="chip tone-ok">Ready</span>`:i`<span class="chip tone-warn" title="${a.gaps.map(o=>o.id).join(", ")}">${a.gaps.length} weak points</span>`}</td>
+      </tr>`)}</tbody>
+    </table>
+    <ul class="list" style="margin-top:6px">${n.plan.map(a=>i`<li>${a}</li>`)}</ul>
+    <div class="row" style="margin-top:6px"><button class="btn btn-xs" data-action="sac-answer" data-student="${t.id}">Practice SAC marked (+1)</button><span class="faint" style="font-size:12px">Source: ${n.sac.source}; materials: ${n.sac.materials}</span></div>`)}`:""}function ne(e,t){let s=xt(e,t.studentId),n=t.card,a=e.data.state.qaQueue.filter(r=>r.studentId===s.id&&r.status!=="done"),o=n.demoRequests.length>0,d=e.data.state.markingRecords.filter(r=>r.studentId===s.id&&r.source==="shiftmate").slice(-1)[0];return i`<article class="card">
+    <div class="card-head">
+      <div>
+        <h2>${s.name}</h2>
+        <div class="card-sub">${t.start}-${t.end} · ${t.mode==="online"?"Zoom":t.room} · ${t.teacher} · Module ${n.currentModule.id}</div>
+      </div>
+      <div class="row">${_(t.status,t.mode)}
+        ${t.status==="expected"&&t.mode==="in_person"?i`<button class="btn btn-xs" data-action="checkin" data-id="${t.id}">Check in</button>`:""}
+      </div>
+    </div>
+
+    <div class="section-title">Scenario A · Module ${n.currentModule.id} study</div>
+    <div class="row">
+      <button class="btn btn-sm ${o?"btn-accent":""}" data-action="demo" data-student="${s.id}" data-module="${n.currentModule.id}">${o?"Demo waiting: check it":"Check a Demo"}</button>
+      <span class="muted" style="font-size:12.5px">${n.currentModule.masteredPct}% of Module ${n.currentModule.id} mastered</span>
+    </div>
+
+    ${ae(e,s,n)}
+
+    ${d?i`<div class="section-title">Scenario C · review ${d.testName} (${d.pct}%)</div>
+      <ul class="list">${d.issues.map(r=>i`<li><strong>${r.label}</strong>: ${r.detail}</li>`)}</ul>
+      <div class="card-sub" style="margin-top:4px">Decision: ${d.decision.label}</div>`:""}
+
+    <div class="section-title">Q&A</div>
+    ${a.length?i`<ul class="list">${a.map(r=>i`<li>
+      ${r.topic} <span class="faint">(${r.source})</span>
+      <button class="btn btn-xs" data-action="qa-done" data-student="${s.id}" data-id="${r.id}" data-topic="${r.topic}">Answered</button>
+    </li>`)}</ul>`:i`<p class="muted">No open questions.</p>`}
+    <div class="row" style="margin-top:8px">
+      <input type="number" min="1" max="20" value="1" style="width:70px" aria-label="Number of questions" data-qa-count="${s.id}">
+      <button class="btn btn-xs" data-action="qa-log" data-student="${s.id}">Log Q&A questions</button>
+    </div>
+  </article>`}function ie(e){let{briefing:t}=e.data.views,s=t.lessons.filter(a=>a.status!=="leave"),n=t.lessons.filter(a=>a.status==="leave");return i`
+    <div class="page-head">
+      <div>
+        <div class="kicker">16:00-18:00 · Phase 4 · Step 9</div>
+        <h1>On site</h1>
+        <p>The three tutoring scenarios with the records beside them: Demo checks (A), SAC readiness against the Progress Sheet (B) and exam reviews from the W / C / time analysis (C). Every pass, booking and Retest stays the tutor's decision; ShiftMate only counts and records.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn" data-action="simulate" title="For the demo: checks everyone in and logs typical Q&A">Demo: play 16:00-18:00</button>
+      </div>
+    </div>
+    ${n.length?i`<div class="callout tone-info" style="margin-bottom:14px">On leave today: ${n.map(a=>a.card.student.name).join(", ")} (teacher told).</div>`:""}
+    <div class="cards">${s.map(a=>ne(e,a))}</div>`}async function oe(e,t,s,n,a){if(e==="click"){if(t==="checkin")await a.run(()=>a.api.post(`/api/timetable/${s.dataset.id}/checkin`),"Checked in")&&a.refresh();else if(t==="simulate")await a.run(()=>a.api.post("/api/demo/simulate"),"Played 16:00-18:00: check-ins and Q&A logged")&&a.refresh();else if(t==="sac-answer")await a.run(()=>a.api.post("/api/sac-answer",{studentId:s.dataset.student,kind:"Practice SAC"}),"Practice SAC recorded")&&a.refresh();else if(t==="qa-done")await a.run(()=>a.api.post("/api/qa/log",{studentId:s.dataset.student,count:1,qaId:s.dataset.id,topic:s.dataset.topic}),"Q&A logged")&&a.refresh();else if(t==="qa-log"){let o=document.querySelector(`[data-qa-count="${s.dataset.student}"]`),d=Number(o&&o.value)||1;await a.run(()=>a.api.post("/api/qa/log",{studentId:s.dataset.student,count:d}),`${d} Q&A question(s) logged`)&&a.refresh()}else if(t==="demo"){let o=xt(a,s.dataset.student),d=Number(s.dataset.module);a.openModal(se(a,o,d),{"save-demo":async(r,c)=>{let u=c.querySelector("form"),v=new FormData(u),S=Object.fromEntries(yt.map(([g])=>[g,v.get(g)==="on"])),f={studentId:o.id,module:d,checks:S,outcome:v.get("outcome"),points:v.getAll("pt"),note:v.get("note")||""};if(!f.outcome){a.toast('Choose "Meets the standard" or "Not yet"',"bad");return}await a.run(()=>a.api.post("/api/demo-review",f),f.outcome==="meets"?`Module ${d} Test booked for ${o.name}`:"Recorded: re-watch list added to Q&A")&&(a.closeModal(),a.refresh())}})}}}var et={};M(et,{on:()=>de,render:()=>re});var N="en",wt={high:"bad",medium:"warn",low:"info"};function re(e){let t=e.data.views.report,s=t.counts,n=(o,d,r)=>i`<div class="card stat"><div class="num">${o}</div><div class="lbl">${d}</div>${r?i`<div class="faint" style="font-size:11.5px">${r}</div>`:""}</div>`,a=t.signedOff;return i`
+    <div class="page-head">
+      <div>
+        <div class="kicker">18:20-18:30 · Phase 5</div>
+        <h1>Daily work report</h1>
+        <p>Every figure the manager asks for is counted from what happened in ShiftMate today: check-ins, Q&A logs, marked papers, approved replies. The follow-up list is built from open Retests, close SACs, unanswered messages and handovers.</p>
+      </div>
+      <div class="page-actions">
+        <a class="btn" href="#/onsite">Log on-site work</a>
+      </div>
+    </div>
+    <div class="stats">
+      ${n(s.onSite,"Students on site")}
+      ${n(s.qaStudents,"Students helped in Q&A",`~${s.qaQuestions} questions`)}
+      ${n(s.testsMarked,"Test papers marked")}
+      ${n(s.sacAnswers,"SAC / Practice SAC answers")}
+      ${n(s.parentFeedback,"Parent feedback completed",`${s.repliesSent} WeChat replies in total`)}
+      ${n(s.demoReviews,"Demo checks")}
+    </div>
+    <div class="grid grid-2">
+      <section class="card">
+        <div class="card-head"><h2>Priority follow-up</h2><span class="card-sub">${t.followUps.length} item(s)</span></div>
+        ${t.followUps.length?t.followUps.map(o=>i`<div class="callout tone-${wt[o.level]}"><span class="dot ${wt[o.level]}" style="margin-top:6px"></span><div>${o.text}</div></div>`):i`<p class="muted">Nothing outstanding.</p>`}
+      </section>
+      <section class="card">
+        <div class="card-head">
+          <h2>Report for the manager</h2>
+          <div class="seg">
+            <button data-action="lang" data-lang="en" class="${N==="en"?"on-DONE":""}">EN</button>
+            <button data-action="lang" data-lang="zh" class="${N==="zh"?"on-DONE":""}">中文</button>
+          </div>
+        </div>
+        <div class="report-text" id="report-text">${a&&N==="en"?a.text:N==="zh"?t.textZh:t.text}</div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" data-action="copy">Copy</button>
+          <span class="spacer"></span>
+          ${a?i`<div class="stamp"><span>Signed off · ${a.signedBy}</span><small>${b(a.signedAt)}</small></div>`:i`<input type="text" id="manager" value="${e.data.state.settings.manager}" style="width:160px" aria-label="Manager name">
+               <button class="btn btn-primary" data-action="sign">Manager sign-off</button>`}
+        </div>
+      </section>
+    </div>`}async function de(e,t,s,n,a){if(e==="click"){if(t==="lang")N=s.dataset.lang,a.refresh();else if(t==="copy"){let o=document.getElementById("report-text").textContent;a.toast(await a.copy(o)?"Report copied":"Select the text and copy it")}else if(t==="sign"){let o=document.getElementById("manager").value;await a.run(()=>a.api.post("/api/report/signoff",{manager:o}),`Signed off by ${o}`)&&a.refresh()}}}var st={};M(st,{mount:()=>ve,on:()=>fe,render:()=>ge});var k={id:null,profile:null,version:null};function le(){return i`<div class="legend">
+    <span><i class="m-mastered"></i>Completely mastered</span>
+    <span><i class="m-partial"></i>Partially mastered</span>
+    <span><i class="m-not_understood"></i>Not understood</span>
+    <span><i class="m-not_covered"></i>Not yet covered</span>
+    <span><i style="outline:2px solid var(--focus);outline-offset:-2px"></i>Updated today</span>
+  </div>`}function ce(e,t){let s=e.summary;return i`<section class="card">
+    <div class="card-head">
+      <div><h2><span class="exhibit-tag">Exhibit 2</span> Progress Sheet: ${e.student.name}</h2>
+      <div class="card-sub">Mathematical Methods Units 3&4 · currently Module ${e.student.currentModule}</div></div>
+    </div>
+    <div class="stats" style="margin-bottom:12px">
+      <div class="card stat"><div class="num">${s.total}</div><div class="lbl">Total core points</div></div>
+      <div class="card stat"><div class="num">${s.covered}</div><div class="lbl">Covered points · ${s.coveredPct}%</div></div>
+      <div class="card stat"><div class="num">${s.understood}</div><div class="lbl">Content understood · ${s.understoodPct}%</div></div>
+      <div class="card stat"><div class="num">${s.mastered}</div><div class="lbl">Mastered in all points · ${s.masteredPct}%</div></div>
+      <div class="card stat"><div class="num">${s.masteredOfCoveredPct}%</div><div class="lbl">Mastered in covered points</div></div>
+    </div>
+    <div class="heat">
+      ${e.modules.map(n=>i`<div class="heat-row">
+        <div class="mod"><strong>${n.id}.</strong> ${n.name}</div>
+        <div class="heat-cells">${n.points.map(a=>i`<span class="heat-cell m-${a.mastery}" title="${a.id} ${a.title}: ${D[a.mastery]}" style="${t.has(a.id)?"outline:2px solid var(--focus);outline-offset:1px":""}">${a.id}</span>`)}</div>
+      </div>`)}
+    </div>
+    <div style="margin-top:12px">${le()}</div>
+  </section>`}function ue(e,t){let s=e.data.views.examTable,n=["A","B","C","D"];return i`<section class="card">
+    <div class="card-head"><h2><span class="exhibit-tag">Exhibit 3</span> Student Exam Statistics</h2>
+      <div class="legend"><span><i class="b-pass"></i>Pass 75-100%</span><span><i class="b-mid"></i>Mid 40-75%</span><span><i class="b-low"></i>Low 0-40%</span><span>*P tutor pass</span></div>
+    </div>
+    <div class="table-wrap">
+      <table class="x3">
+        <thead>
+          <tr><th class="name">Student</th>${s.modules.map(a=>i`<th colspan="4">Module ${a}</th>`)}</tr>
+          <tr><th class="name"></th>${s.modules.map(()=>n.map(a=>i`<th class="faint">${a}</th>`))}</tr>
+        </thead>
+        <tbody>
+          ${s.classes.map(a=>i`
+            <tr class="cls"><td colspan="${1+s.modules.length*4}">${a.classId} · ${a.classTime}</td></tr>
+            ${a.rows.map(o=>i`<tr style="${o.student.id===t?"outline:2px solid var(--focus);outline-offset:-2px":""}">
+              <td class="name"><a href="#/records/${o.student.id}">${o.student.name}</a></td>
+              ${o.cells.map(d=>d.attempts.map(r=>r.pct===null?i`<td class="faint" style="${d.status==="not_submitted"&&r.slot==="A"?"background:var(--warn-bg)":""}" title="${d.status==="not_submitted"&&r.slot==="A"?"Not submitted":""}">${r.slot}</td>`:i`<td class="att b-${r.band}" title="${r.pct}% on ${r.date}">${Math.round(r.pct)}${r.tutorPass?"*P":""}</td>`))}
+            </tr>`)}`)}
+        </tbody>
+      </table>
+    </div>
+  </section>`}function pe(e){return e.markingRecords.length?i`<section class="card">
+    <div class="card-head"><h2><span class="exhibit-tag">Exhibit 1</span> Marking Sheets</h2><span class="card-sub">DONE = correct · W = wrong · C = careless · \\Blank\\ = not attempted</span></div>
+    ${e.markingRecords.map((t,s)=>i`<details ${s===0?i`open`:""} style="margin-bottom:8px">
+      <summary>${t.testName} · ${y(t.date)} · ${P(t.band||(t.pct>=75?"pass":t.pct>=40?"mid":"low"),`${t.pct}%`)} ${t.source==="shiftmate"?i`<span class="chip tone-info">via ShiftMate</span>`:""}</summary>
+      <div class="table-wrap" style="max-width:560px">
+        <table>
+          <thead><tr><th>Question</th><th>Point</th><th>Outcome</th>${t.rows[0]&&t.rows[0].max!==void 0?i`<th class="num">Marks</th>`:""}</tr></thead>
+          <tbody>${t.rows.map(n=>i`<tr>
+            <td>${n.q}</td><td><span class="mono">${n.point}</span> <span class="faint" style="font-size:12px">${n.title}</span></td><td>${B(n.outcome)}</td>
+            ${n.max!==void 0?i`<td class="num">${n.awarded}/${n.max}</td>`:""}
+          </tr>`)}</tbody>
+        </table>
+      </div>
+      ${t.decision?i`<p class="card-sub" style="margin-top:6px">Tutor decision: ${t.decision.label}${t.decision.tutorPass?" (tutor pass *P)":""}</p>`:""}
+    </details>`)}
+  </section>`:""}function he(e){if(e.length<2)return"";let t=560,s=190,n={l:36,r:40,t:14,b:34},a=t-n.l-n.r,o=s-n.t-n.b,d=p=>n.l+a*p/(e.length-1),r=p=>n.t+o-o*p/100,c=Math.max(60,...e.map(p=>p.firstPassMin||0)),u=p=>n.t+o-o*p/c,v=e.map((p,g)=>`${g?"L":"M"}${d(g)},${r(p.pct)}`).join(" "),S=e.filter(p=>p.firstPassMin!==null),f=e.map((p,g)=>p.firstPassMin===null?"":`${g&&S.indexOf(p)?"L":"M"}${d(g)},${u(p.firstPassMin)}`).join(" ");return i`<svg class="chart" viewBox="0 0 ${t} ${s}" role="img" aria-label="Score and first-pass time over time">
+    ${[0,25,50,75,100].map(p=>i`<line class="grid-line" x1="${n.l}" x2="${t-n.r}" y1="${r(p)}" y2="${r(p)}"></line><text x="${n.l-6}" y="${r(p)+4}" text-anchor="end">${p}%</text>`)}
+    <text x="${t-n.r+6}" y="${n.t+4}">${c}m</text>
+    <text x="${t-n.r+6}" y="${n.t+o+4}">0m</text>
+    <path class="line-time" d="${f}"></path>
+    <path class="line-score" d="${v}"></path>
+    ${e.map((p,g)=>i`<circle class="pt-score" cx="${d(g)}" cy="${r(p.pct)}" r="4"><title>${p.paper}: ${p.pct}%</title></circle>
+      ${p.firstPassMin!==null?i`<circle class="pt-time" cx="${d(g)}" cy="${u(p.firstPassMin)}" r="3.5"><title>${p.paper}: first pass ${p.firstPassMin} min</title></circle>`:""}
+      <text x="${d(g)}" y="${s-12}" text-anchor="middle">${y(p.date)}</text>`)}
+  </svg>
+  <div class="legend"><span><i style="background:var(--brand)"></i>Score %</span><span><i style="background:var(--accent)"></i>First pass, minutes</span></div>`}function me(e){return e.examLog.length?i`<section class="card">
+    <div class="card-head"><h2><span class="exhibit-tag">Log</span> Exam log (Scenario C, step 5)</h2><span class="card-sub">Score and time, so the student sees the trend</span></div>
+    ${he(e.examLog)}
+    <div class="table-wrap" style="margin-top:10px">
+      <table>
+        <thead><tr><th>Date</th><th>Paper</th><th>Start</th><th>1st pass</th><th>2nd pass</th><th class="num">Checks</th><th class="num">Score</th></tr></thead>
+        <tbody>${e.examLog.slice().reverse().map(t=>i`<tr>
+          <td>${y(t.date)}</td><td>${t.paper}</td><td class="mono">${t.start}</td>
+          <td class="mono">${t.end1}${t.firstPassMin!==null?i` <span class="faint">(${t.firstPassMin}m)</span>`:""}</td>
+          <td class="mono">${t.end2||"-"}</td><td class="num">${t.checks}</td><td class="num"><strong>${t.pct}%</strong></td>
+        </tr>`)}</tbody>
+      </table>
+    </div>
+  </section>`:""}function kt(e,t){let s=e.data.state.today,n=new Set;return t.markingRecords.filter(a=>a.date===s&&a.source==="shiftmate").forEach(a=>a.rows.forEach(o=>n.add(o.point))),i`
+    ${ce(t,n)}
+    <div style="height:14px"></div>
+    ${ue(e,t.student.id)}
+    <div class="grid grid-2" style="margin-top:14px;align-items:start">
+      <div>${pe(t)}</div>
+      <div>${me(t)}</div>
+    </div>`}function ge(e,t){let s=e.data.state.students,n=t[0]&&s.some(o=>o.id===t[0])?t[0]:s[0].id,a=k.id===n&&k.version===e.data;return i`
+    <div class="page-head">
+      <div>
+        <div class="kicker">Exhibits 1-3 · records the tutor maintains</div>
+        <h1>Student records</h1>
+        <p>The three sheets from the brief, kept in the same shape so the centre recognises them. Everything here is written by the rules engine after the tutor confirms; export to CSV to paste into the existing Google Sheets.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-sm" data-action="export" data-sheet="exhibit1">Exhibit 1 CSV</button>
+        <button class="btn btn-sm" data-action="export" data-sheet="exhibit2">Exhibit 2 CSV</button>
+        <button class="btn btn-sm" data-action="export" data-sheet="exhibit3">Exhibit 3 CSV</button>
+      </div>
+    </div>
+    <nav class="student-tabs" aria-label="Students">
+      ${s.map(o=>i`<a href="#/records/${o.id}" class="${o.id===n?"active":""}">${o.name}</a>`)}
+    </nav>
+    <div id="rec-body" data-id="${n}">${a?kt(e,k.profile):i`<div class="row"><span class="spinner"></span><span class="muted">Loading records...</span></div>`}</div>`}async function ve(e,t,s){let a=document.getElementById("rec-body").dataset.id;if(!(k.id===a&&k.version===t.data))try{let o=await t.api.get(`/api/students/${a}`);k.id=a,k.profile=o,k.version=t.data;let d=document.getElementById("rec-body");d&&d.dataset.id===a&&(d.innerHTML=String(kt(t,o)))}catch(o){t.toast(o.message,"bad")}}async function fe(e,t,s,n,a){if(e!=="click"||t!=="export")return;let o=`/api/export/${s.dataset.sheet}.csv`;if(!window.SHIFTMATE_LOCAL_API){window.location.href=o;return}let d=await window.SHIFTMATE_LOCAL_API("GET",o),r=new Blob([`\uFEFF${d.csv}`],{type:"text/csv;charset=utf-8"}),c=document.createElement("a");c.href=URL.createObjectURL(r),c.download=d.filename,document.body.appendChild(c),c.click(),setTimeout(()=>{URL.revokeObjectURL(c.href),c.remove()},1e3)}var ot={};M(ot,{on:()=>we,render:()=>xe});var z=[{id:"brief",step:"2-4",task:"Review timetable, changes and each expected student's records",unit:"students",vol:7,manual:1.5,withSm:.5,how:"Prep cards built from Exhibits 2-3"},{id:"notify",step:"3",task:"Pass attendance changes on to teachers",unit:"changes",vol:2,manual:2,withSm:.5,how:"Teacher notice created when the reply is approved"},{id:"wechat",step:"6-7",task:"Read, look up the records and reply on WeChat",unit:"messages",vol:12,manual:2.5,withSm:1,how:"Classified, facts pulled, draft in the sender's language"},{id:"records",step:"8",task:"Enter one marked test into the three sheets",unit:"papers",vol:5,manual:6,withSm:1.5,how:"Mark once: Exhibits 1-3 and the exam log together"},{id:"review",step:"9C",task:"Prepare an exam review (gaps, careless, time)",unit:"exams",vol:2,manual:6,withSm:2,how:"W / C / blank and timing diagnosis ready"},{id:"sac",step:"9B",task:"Check a SAC scope against the progress sheet",unit:"students",vol:2,manual:5,withSm:1,how:"SAC readiness per Module"},{id:"report",step:"5",task:"Compile the daily report",unit:"report",vol:1,manual:10,withSm:2,how:"Counted from the day's activity"}],St=300,nt=5,H={input:4,output:20},j={input:2e3,output:800},O=Object.fromEntries(z.map(e=>[e.id,{vol:e.vol,manual:e.manual,withSm:e.withSm}]));function it(){let e=0,t=0;return z.forEach(s=>{let n=O[s.id];e+=n.vol*n.manual,t+=n.vol*n.withSm}),{manual:e,withSm:t,saved:e-t}}function at(e){return`$${e<1?e.toFixed(3):e.toFixed(2)}`}function Mt(){let e=it();return i`<table class="impact-table">
+    <thead><tr><th>Step</th><th>Task</th><th class="num">Per shift</th><th class="num">By hand (min each)</th><th class="num">With ShiftMate</th><th class="num">Saved</th></tr></thead>
+    <tbody>${z.map(t=>{let s=O[t.id];return i`<tr>
+        <td class="mono">${t.step}</td>
+        <td>${t.task}<br><span class="faint" style="font-size:12px">${t.how}</span></td>
+        <td class="num"><input type="number" min="0" step="1" value="${s.vol}" data-action="val" data-id="${t.id}" data-k="vol" aria-label="${t.unit} per shift"> <span class="faint" style="font-size:11px">${t.unit}</span></td>
+        <td class="num"><input type="number" min="0" step="0.5" value="${s.manual}" data-action="val" data-id="${t.id}" data-k="manual" aria-label="Minutes by hand"></td>
+        <td class="num"><input type="number" min="0" step="0.5" value="${s.withSm}" data-action="val" data-id="${t.id}" data-k="withSm" aria-label="Minutes with ShiftMate"></td>
+        <td class="num"><strong>${Math.round(s.vol*(s.manual-s.withSm))}</strong> min</td>
+      </tr>`})}
+      <tr><td></td><td><strong>Total per shift</strong></td><td></td><td class="num"><strong>${Math.round(e.manual)}</strong> min</td><td class="num"><strong>${Math.round(e.withSm)}</strong> min</td><td class="num"><strong>${Math.round(e.saved)}</strong> min</td></tr>
+    </tbody>
+  </table>`}function Et(){let e=it(),t=e.saved/St*100,s=e.manual/St*100;return i`<div class="row" style="gap:24px;align-items:flex-end">
+    <div><div class="big-number">${Math.round(e.saved)} min</div><div class="muted">returned per 14:00-19:00 shift</div></div>
+    <div><div class="big-number">${Math.round(t)}%</div><div class="muted">of the shift</div></div>
+    <div><div class="big-number">${(e.saved*nt/60).toFixed(1)} h</div><div class="muted">per week (${nt} shifts)</div></div>
+  </div>
+  <div class="meter" style="margin-top:14px" role="img" aria-label="Admin time before and after">
+    <span class="m-not_understood" style="width:${Math.min(100,s-t)}%" title="Admin time that remains"></span>
+    <span class="m-mastered" style="width:${Math.min(100,t)}%" title="Time returned to tutoring"></span>
+  </div>
+  <div class="legend" style="margin-top:6px"><span><i class="m-not_understood"></i>Admin left (${Math.round(e.withSm)} min)</span><span><i class="m-mastered"></i>Returned to on-site Q&A (${Math.round(e.saved)} min)</span><span><i class="b-none"></i>Rest of the 300-minute shift</span></div>`}function $e(e){let t=e.data.state.aiUsage||{calls:0,input:0,output:0},s=(t.input*H.input+t.output*H.output)/1e6,n=(j.input*H.input+j.output*H.output)/1e6,a=n*O.wechat.vol*nt*4.33;return i`<section class="card">
+    <h2>Running cost</h2>
+    <table style="margin-top:8px">
+      <tbody>
+        <tr><td>Claude per message (about ${j.input} in / ${j.output} out tokens, Opus 5.5)</td><td class="num"><strong>${at(n)}</strong></td></tr>
+        <tr><td>Per month at ${O.wechat.vol} messages a shift</td><td class="num"><strong>${at(a)}</strong></td></tr>
+        <tr><td>Marking, records, briefing, report (rules, no AI)</td><td class="num"><strong>$0</strong></td></tr>
+        <tr><td>Hosting: Google Apps Script inside the centre's Workspace, or this app on the front-desk PC</td><td class="num"><strong>$0</strong></td></tr>
+        <tr><td>This demo so far: ${t.calls} Claude call(s)</td><td class="num">${at(s)}</td></tr>
+      </tbody>
+    </table>
+    <p class="card-sub" style="margin-top:8px">Offline rules mode costs nothing and is the fallback when the API is down.</p>
+  </section>`}var be=[["Marks for each question","Nothing: it only records what the tutor marked","Marks the paper"],["Why a question was left blank","Suggests (blank at the end usually means time)","Confirms before anything is saved"],["Mastery colours (Exhibit 2)","Applies one fixed rule: W is a gap, C is not","Reviews the before/after list, then applies"],["Move on, Retest, redo the Demo","Suggests, with its reasons","Decides; can pass on judgement (*P)"],["Passing a Demo","Shows the four-point checklist","Decides; only then is the test booked"],["Messages to students and parents","Drafts in their language from the records","Edits, approves and sends from Work WeChat"],["Leave, online switch, bookings","Proposes the changes","Ticks which ones to apply"],["Fees, invoices, complaints","Routes to the front desk","Not the tutor's call"]];function ye(e){let t=e.data.state.audit.slice().reverse(),s=t.length,n=t.filter(a=>a.overridden).length;return i`<section class="card">
+    <div class="card-head"><h2>Audit trail: suggestion vs decision</h2><span class="card-sub">${s?`${n} of ${s} changed by the tutor`:"Fills as you work"}</span></div>
+    ${s?i`<div class="table-wrap"><table>
+      <thead><tr><th>Time</th><th>Area</th><th>About</th><th>Suggested</th><th>Decided</th><th>Tutor changed it?</th></tr></thead>
+      <tbody>${t.map(a=>i`<tr>
+        <td class="mono">${b(a.at)}</td><td>${a.feature}${a.mode?i` <span class="faint">(${a.mode})</span>`:""}</td><td>${a.subject}</td>
+        <td>${a.suggested}</td><td>${a.decided}</td>
+        <td>${a.overridden?i`<span class="chip tone-warn">Yes</span>`:i`<span class="chip">No</span>`} <span class="faint" style="font-size:12px">${a.detail}</span></td>
+      </tr>`)}</tbody>
+    </table></div>`:i`<p class="muted">Approve a reply or mark a paper to see entries. The override rate is the pilot's quality measure.</p>`}
+  </section>`}function xe(e){return i`
+    <div class="page-head">
+      <div>
+        <div class="kicker">Impact, feasibility and responsible AI</div>
+        <h1>Why this, and why it is safe</h1>
+        <p>The tutor's non-tutoring work (phases 2, 3 and 5) is mostly looking things up, re-typing the same result and writing the same kinds of message. ShiftMate removes the re-typing and drafts the writing, and leaves every judgement about a student with the tutor.</p>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head"><h2>Time returned to students</h2><span class="card-sub">Edit any number: the totals update</span></div>
+      <div id="impact-head">${Et()}</div>
+      <div class="table-wrap" style="margin-top:16px" id="impact-table">${Mt()}</div>
+      <p class="card-sub" style="margin-top:8px">Basis: volumes match today's demo data (7 lessons, 9 messages by 14:30, 4 papers waiting); minutes per task are our estimates for a typical weekday, deliberately conservative. Marking the paper itself is unchanged and not counted. Week 1 of the pilot replaces these estimates with timed measurements.</p>
+    </section>
+
+    <div class="grid grid-2" style="margin-top:14px;align-items:start">
+      <section class="card">
+        <h2>Who gets what</h2>
+        <ul class="list" style="margin-top:8px">
+          <li><strong>Students:</strong> ~${Math.round(it().saved)} more minutes of on-site Q&A a shift; feedback that separates knowledge gaps from careless slips; SAC gaps spotted a week ahead.</li>
+          <li><strong>Parents:</strong> replies in minutes, in Chinese or English, quoting the real records.</li>
+          <li><strong>Tutor:</strong> no triple entry; one place for the day; the report writes itself.</li>
+          <li><strong>Manager:</strong> consistent daily figures and a follow-up list; an audit trail of every AI suggestion.</li>
+        </ul>
+      </section>
+      ${$e(e)}
+    </div>
+
+    <section class="card" style="margin-top:14px">
+      <h2>Who decides</h2>
+      <div class="table-wrap" style="margin-top:8px"><table>
+        <thead><tr><th>Decision</th><th>ShiftMate</th><th>Tutor</th></tr></thead>
+        <tbody>${be.map(t=>i`<tr><td><strong>${t[0]}</strong></td><td>${t[1]}</td><td>${t[2]}</td></tr>`)}</tbody>
+      </table></div>
+    </section>
+
+    <div class="grid grid-2" style="margin-top:14px;align-items:start">
+      <section class="card">
+        <h2>Student data (most are minors)</h2>
+        <ul class="list" style="margin-top:8px">
+          <li>Grades, mastery and statistics never go to an AI model: they come from fixed rules over the tutor's marks.</li>
+          <li>Only the WeChat message and the few facts a reply needs are sent, with student, parent and school names replaced by placeholders. Each draft shows exactly what was sent.</li>
+          <li>Records stay in the centre's own Google Workspace (pilot) or on the centre's PC (this demo).</li>
+          <li>No chatbot talks to students. Every message out is the tutor's.</li>
+          <li>One switch (SHIFTMATE_AI=off) runs everything offline.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h2>When the AI is wrong</h2>
+        <ul class="list" style="margin-top:8px">
+          <li><strong>Wrong category:</strong> the tutor re-categorises in one click; the rules rebuild the draft and actions.</li>
+          <li><strong>A made-up number:</strong> the fact check flags any percentage in a draft that is not in the records.</li>
+          <li><strong>AI and rules disagree:</strong> the draft is flagged for a closer look.</li>
+          <li><strong>A date read wrongly</strong> ("下周四"): shown as a date to confirm, never silently saved.</li>
+          <li><strong>API down or request declined:</strong> drafts fall back to the rules engine and the screen says so.</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top:14px">
+      <h2>Pilot plan: four weeks, current tools</h2>
+      <div class="grid grid-2" style="margin-top:8px">
+        <ul class="list">
+          <li><strong>Week 1:</strong> one tutor uses the briefing, inbox drafts and mark-once screen; CSV export pasted into the existing sheets.</li>
+          <li><strong>Week 2:</strong> the Google Sheets add-on (Apps Script, in this repo) writes the three tabs directly.</li>
+          <li><strong>Weeks 3-4:</strong> measure minutes per task and the override rate; the manager decides go or no-go.</li>
+        </ul>
+        <ul class="list">
+          <li><strong>Risk:</strong> Work WeChat cannot be auto-sent here. <strong>Fallback:</strong> copy and paste by design; WeCom API later.</li>
+          <li><strong>Risk:</strong> each centre's sheets differ. <strong>Fallback:</strong> column mapping in the add-on, CSV export.</li>
+          <li><strong>Risk:</strong> API cost or outage. <strong>Fallback:</strong> rules mode, $0.</li>
+        </ul>
+      </div>
+    </section>
+
+    <div style="margin-top:14px">${ye(e)}</div>`}function we(e,t,s){if(e!=="input"||t!=="val")return;let n=Number(s.value);if(!Number.isFinite(n)||n<0)return;O[s.dataset.id][s.dataset.k]=n,document.getElementById("impact-head").innerHTML=String(Et());let a=document.getElementById("impact-table"),o=document.createElement("div");o.innerHTML=String(Mt());let d=a.querySelectorAll("tbody tr");o.querySelectorAll("tbody tr").forEach((r,c)=>{let u=r.lastElementChild;d[c]&&(d[c].lastElementChild.innerHTML=u.innerHTML),c===z.length&&(d[c].innerHTML=r.innerHTML)})}var dt={briefing:U,inbox:V,marking:X,onsite:tt,report:et,records:st,impact:ot},ke=[{group:"Your shift",items:[{id:"briefing",time:"14:15",label:"Briefing",sub:"Steps 2-5: who, what, changes"},{id:"inbox",time:"14:30",label:"WeChat inbox",sub:"Steps 6-7: triage and draft",badge:e=>e.state.inbox.filter(t=>t.status!=="sent").length},{id:"marking",time:"15:00",label:"Mark once",sub:"Step 8: one entry, three sheets",badge:e=>e.state.pendingPapers.length},{id:"onsite",time:"16:00",label:"On site",sub:"Step 9: Q&A, Demo, SAC, exams"},{id:"report",time:"18:20",label:"Daily report",sub:"Phase 5: manager sign-off"}]},{group:"Records and case",items:[{id:"records",time:"Ex 1-3",label:"Student records",sub:"Marking, progress, exam stats"},{id:"impact",time:"Why",label:"Impact and safety",sub:"Time saved, who decides"}]}];async function Ct(e,t,s){if(window.SHIFTMATE_LOCAL_API){let o=await window.SHIFTMATE_LOCAL_API(e,t,s);if(o.status!==200)throw new Error(o.body&&o.body.error||`Request failed (${o.status})`);return o.body}let n=await fetch(t,{method:e,headers:s?{"Content-Type":"application/json"}:{},body:s?JSON.stringify(s):void 0}),a=await n.json().catch(()=>({}));if(!n.ok)throw new Error(a.error||`Request failed (${n.status})`);return a}var R=document.getElementById("main"),Se=document.getElementById("nav"),$=document.getElementById("modal"),m={data:null,route:{page:"briefing",params:[]},api:{get:e=>Ct("GET",e),post:(e,t)=>Ct("POST",e,t||{})},async refresh({keepScroll:e=!0}={}){let t=window.scrollY;this.data=await this.api.get("/api/state"),At(),rt(),e&&window.scrollTo(0,t)},navigate(e){location.hash===e?rt():location.hash=e},toast(e,t=""){let s=document.createElement("div");s.className=`toast ${t}`,s.textContent=e,document.getElementById("toasts").appendChild(s),setTimeout(()=>s.remove(),t==="bad"?6e3:3800)},async run(e,t){try{let s=await e();return t&&this.toast(t),s}catch(s){return this.toast(s.message,"bad"),null}},openModal(e,t={}){$.innerHTML=String(e),$.handlers=t,$.showModal()},closeModal(){$.close(),$.innerHTML="",$.handlers=null},async copy(e){try{return await navigator.clipboard.writeText(e),!0}catch{return!1}}};window.shiftmate=m;function Pt(){let e=location.hash.replace(/^#\/?/,"").split("/").filter(Boolean).map(decodeURIComponent);return{page:dt[e[0]]?e[0]:"briefing",params:e.slice(1)}}function At(){let e=m.data,t=document.getElementById("ai-pill");e.ai.enabled?(t.className="pill tone-ok",t.textContent=`Claude drafts: ${e.ai.model}`,t.title="WeChat replies are drafted by Claude with names masked. Records use rules only."):(t.className="pill tone-warn",t.textContent="Offline rules mode",t.title=`${e.ai.reason}. Drafts come from the built-in rules engine; nothing leaves this computer.`),document.getElementById("shift-label").textContent=`Learning Support Tutor \xB7 ${y(e.state.today)} \xB7 ${e.state.settings.shift.start}-${e.state.settings.shift.end}`,Se.innerHTML=String(i`${ke.map(s=>i`
+    <div class="nav-group">
+      <div class="nav-title">${s.group}</div>
+      ${s.items.map(n=>{let a=n.badge?n.badge(e):0;return i`<a class="nav-item ${m.route.page===n.id?"active":""}" href="#/${n.id}" ${m.route.page===n.id?i`aria-current="page"`:""}>
+          <span class="nav-time">${n.time}</span>
+          <span class="nav-label"><strong>${n.label}</strong><small>${n.sub}</small></span>
+          ${a?i`<span class="nav-badge">${a}</span>`:i`<span></span>`}
+        </a>`})}
+    </div>`)}`)}function rt(){if(!m.data)return;let e=dt[m.route.page];R.innerHTML=String(e.render(m,m.route.params)),e.mount&&e.mount(R,m,m.route.params)}function Me(){let e=m.route.page;m.route=Pt(),m.data&&(At(),rt(),e!==m.route.page&&(window.scrollTo(0,0),R.focus({preventScroll:!0})))}function Ee(e){R.addEventListener(e,t=>{let s=dt[m.route.page];if(!s.on)return;let n=t.target.closest("[data-action]");e==="click"&&!n||s.on(e,n?n.dataset.action:null,n||t.target,t,m)})}["click","input","change","keydown","submit"].forEach(Ee);$.addEventListener("click",e=>{if(e.target===$){m.closeModal();return}let t=e.target.closest("[data-action]");if(!t||!$.handlers)return;let s=$.handlers[t.dataset.action];s?s(t,$,e):t.dataset.action==="close"&&m.closeModal()});$.addEventListener("close",()=>{$.handlers=null});document.querySelector('[data-global="reset"]').addEventListener("click",async()=>{window.confirm("Reset all demo data to the start of the shift?")&&(await m.run(()=>m.api.post("/api/reset"),"Demo data reset"),J(),K(),await m.refresh({keepScroll:!1}))});window.addEventListener("hashchange",Me);(async function(){m.route=Pt();try{await m.refresh({keepScroll:!1})}catch(t){R.innerHTML=String(i`<div class="card"><h2>Could not load ShiftMate</h2><p class="muted">${t.message}. Is the server running (npm start)?</p></div>`)}})();})();
+</script>
+</body>
+</html>

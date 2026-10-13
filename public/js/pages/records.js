@@ -56,7 +56,7 @@ function exhibit3(app, studentId) {
               <td class="name"><a href="#/records/${r.student.id}">${r.student.name}</a></td>
               ${r.cells.map((cell) => cell.attempts.map((a) => (a.pct === null
                 ? html`<td class="faint" style="${cell.status === 'not_submitted' && a.slot === 'A' ? 'background:var(--warn-bg)' : ''}" title="${cell.status === 'not_submitted' && a.slot === 'A' ? 'Not submitted' : ''}">${a.slot}</td>`
-                : html`<td class="att b-${a.band}" title="${a.date}">${a.pct}${a.tutorPass ? '*P' : ''}</td>`)))}
+                : html`<td class="att b-${a.band}" title="${a.pct}% on ${a.date}">${Math.round(a.pct)}${a.tutorPass ? '*P' : ''}</td>`)))}
             </tr>`)}`)}
         </tbody>
       </table>
@@ -155,9 +155,9 @@ export function render(app, params) {
         <p>The three sheets from the brief, kept in the same shape so the centre recognises them. Everything here is written by the rules engine after the tutor confirms; export to CSV to paste into the existing Google Sheets.</p>
       </div>
       <div class="page-actions">
-        <a class="btn btn-sm" href="/api/export/exhibit1.csv">Exhibit 1 CSV</a>
-        <a class="btn btn-sm" href="/api/export/exhibit2.csv">Exhibit 2 CSV</a>
-        <a class="btn btn-sm" href="/api/export/exhibit3.csv">Exhibit 3 CSV</a>
+        <button class="btn btn-sm" data-action="export" data-sheet="exhibit1">Exhibit 1 CSV</button>
+        <button class="btn btn-sm" data-action="export" data-sheet="exhibit2">Exhibit 2 CSV</button>
+        <button class="btn btn-sm" data-action="export" data-sheet="exhibit3">Exhibit 3 CSV</button>
       </div>
     </div>
     <nav class="student-tabs" aria-label="Students">
@@ -180,4 +180,24 @@ export async function mount(root, app, params) {
   } catch (err) {
     app.toast(err.message, 'bad');
   }
+}
+
+export async function on(type, action, el, event, app) {
+  if (type !== 'click' || action !== 'export') return;
+  const url = `/api/export/${el.dataset.sheet}.csv`;
+  if (!window.SHIFTMATE_LOCAL_API) {
+    window.location.href = url;
+    return;
+  }
+  const out = await window.SHIFTMATE_LOCAL_API('GET', url);
+  const blob = new Blob([`\ufeff${out.csv}`], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = out.filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 1000);
 }

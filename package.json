@@ -6,9 +6,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/",
+    "test": "node --test",
     "build:gas": "node scripts/build-apps-script.js",
-    "screenshots": "node scripts/screenshots.js"
+    "screenshots": "node scripts/screenshots.js",
+    "build:static": "node scripts/build-static.js"
   },
   "engines": {
     "node": ">=18"
@@ -16,5 +17,8 @@
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.10"
   }
 }

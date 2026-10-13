@@ -98,7 +98,9 @@ function padTable(app, paper, test) {
 function pad(app) {
   const paper = currentPaper(app);
   if (!paper) {
-    return html`<section class="card"><h2>Choose a paper</h2><p class="muted">Pick a submitted test on the left to start marking.</p></section>`;
+    return local.result
+      ? html`<section class="card"><h2>Paper recorded</h2><p class="muted" style="margin-top:6px">${local.result.record.testName} is now in all three sheets. Pick the next paper above, or press "Mark next paper".</p></section>`
+      : html`<section class="card"><h2>Choose a paper</h2><p class="muted" style="margin-top:6px">Pick a submitted test above to start marking.</p></section>`;
   }
   const test = testOf(app, paper);
   const marked = test.questions.filter((q) => local.outcomes[q.q]).length;

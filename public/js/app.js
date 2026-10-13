@@ -30,6 +30,12 @@ const NAV = [
 ];
 
 async function request(method, url, body) {
+  // Single-file build: the API runs inside the page (static/local-api.js).
+  if (window.SHIFTMATE_LOCAL_API) {
+    const out = await window.SHIFTMATE_LOCAL_API(method, url, body);
+    if (out.status !== 200) throw new Error((out.body && out.body.error) || `Request failed (${out.status})`);
+    return out.body;
+  }
   const res = await fetch(url, {
     method,
     headers: body ? { 'Content-Type': 'application/json' } : {},
