@@ -447,9 +447,9 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
 `)}\r
 `}var Xn={DONE:"DONE",W:"W",C:"C",BLANK:"\\Blank\\"};function Jn(e){let t=[["Student","Test","Date","Attempt","Question","Syllabus point","Outcome","Marks","Out of"]];return e.markingRecords.forEach(n=>{let o=xt.studentById(e,n.studentId);n.rows.forEach(s=>{t.push([o?o.name:n.studentId,n.testName,n.date,n.attempt,s.q,s.point,Xn[s.outcome]||s.outcome,s.awarded===void 0?"":s.awarded,s.max===void 0?"":s.max])})}),de(t)}function es(e){let t=[["Student","Module","Point","Title","Mastery"]];return e.students.forEach(n=>{let o=e.progress[n.id]||{};Zn.forEach(s=>{t.push([n.name,s.module,s.id,s.title,qt.MASTERY_LABEL[o[s.id]||"not_covered"]])})}),de(t)}function ts(e){let t=xt.examStatsTable(e),n=["Class","Student"];t.modules.forEach(s=>qt.ATTEMPT_SLOTS.forEach(a=>n.push(`Module ${s} ${a}`)));let o=[n];return t.classes.forEach(s=>{s.rows.forEach(a=>{let r=[s.classId,a.student.name];a.cells.forEach(i=>i.attempts.forEach(d=>{r.push(d.pct===null?"":`${d.pct}${d.tutorPass?" *P":""}`)})),o.push(r)})}),de(o)}Dt.exports={toCsv:de,exhibit1:Jn,exhibit2:es,exhibit3:ts}});var Bt=M((bs,Rt)=>{var{MODULES:ns,POINTS:ss,TESTS:Ot}=B(),{isoDate:os}=ce(),H=K(),F=oe(),_=vt(),Pt=It(),Ae=te(),Te=Ct();function Lt(e,t){let n=e.state;return{state:n,views:{briefing:F.buildBriefing(n),report:F.buildDailyReport(n),examTable:F.examStatsTable(n),pendingPapers:F.pendingPapersFor(n)},ai:t,syllabus:{modules:ns,points:ss,tests:Ot},constants:{masteryLabel:H.MASTERY_LABEL,nextSteps:H.NEXT_STEPS,blankReasons:H.BLANK_REASONS,intentLabels:Ae.INTENT_LABELS,routes:Ae.ROUTES,passPct:H.PASS_PCT,lowPct:H.LOW_PCT}}}function as({store:e,triageFn:t=Pt.triageMessage,aiStatus:n=Pt.status,now:o=()=>new Date}){let s=[],a=(d,u,c)=>s.push({method:d,pattern:u,handler:c}),r=d=>(u,c)=>{let p=d(u,c);return e.save(),p};a("GET",/^\/api\/status$/,()=>({ok:!0,ai:n(),today:e.state.today})),a("GET",/^\/api\/state$/,()=>Lt(e,n())),a("GET",/^\/api\/students\/([\w-]+)$/,d=>{let u=F.studentProfile(e.state,d[1]);if(!u)throw new _.ActionError("Unknown student",404);return u}),a("POST",/^\/api\/marking\/preview$/,(d,u)=>_.previewMarking(e.state,u)),a("POST",/^\/api\/marking\/parse$/,(d,u)=>{let c=Ot.find(p=>p.id===u.testId);if(!c)throw new _.ActionError("Unknown test",404);return H.parseQuickEntry(u.text,c)}),a("POST",/^\/api\/marking\/apply$/,r((d,u)=>_.applyMarking(e.state,u,o()))),a("POST",/^\/api\/inbox\/([\w-]+)\/triage$/,async(d,u)=>{let c=e.state.inbox.find(f=>f.id===d[1]);if(!c)throw new _.ActionError("Unknown message",404);let p=F.messageContext(e.state,c),h=u.intent?{...Ae.triageRules(c,p,{forceIntent:u.intent}),aiError:null}:await t(c,p,{forceRules:!!u.forceRules});return _.storeTriage(e.state,c.id,h),e.save(),c}),a("POST",/^\/api\/inbox\/([\w-]+)\/approve$/,r((d,u)=>_.approveMessage(e.state,d[1],u,o()))),a("POST",/^\/api\/timetable\/([\w-]+)\/checkin$/,r(d=>_.checkIn(e.state,d[1],o()))),a("POST",/^\/api\/qa\/log$/,r((d,u)=>_.logQa(e.state,u,o()))),a("POST",/^\/api\/demo-review$/,r((d,u)=>_.demoReview(e.state,u,o()))),a("POST",/^\/api\/sac-answer$/,r((d,u)=>_.recordSacAnswer(e.state,u,o()))),a("POST",/^\/api\/retests\/([\w-]+)\/schedule$/,r((d,u)=>_.resolveRetest(e.state,d[1],u))),a("POST",/^\/api\/handovers\/([\w-]+)\/close$/,r(d=>_.closeHandover(e.state,d[1]))),a("POST",/^\/api\/report\/signoff$/,r((d,u)=>_.signOff(e.state,u,o()))),a("POST",/^\/api\/demo\/simulate$/,r(()=>_.simulateAfternoon(e.state,o()))),a("POST",/^\/api\/reset$/,()=>(e.reset(),{ok:!0}));let i={exhibit1:Te.exhibit1,exhibit2:Te.exhibit2,exhibit3:Te.exhibit3};return async function(u,c,p={}){try{e.state.today!==os(o())&&e.reset();let h=/^\/api\/export\/(exhibit[123])\.csv$/.exec(c);if(h&&u==="GET")return{status:200,csv:i[h[1]](e.state),filename:`${h[1]}-${e.state.today}.csv`};for(let f of s){if(f.method!==u)continue;let k=f.pattern.exec(c);if(k)return{status:200,body:await f.handler(k,p)}}return{status:404,body:{error:"Not found"}}}catch(h){let f=h instanceof _.ActionError?h.status:500;return f===500&&typeof console<"u"&&console.error(h),{status:f,body:{error:f===500?"Internal error":h.message}}}}}Rt.exports={createApi:as,fullState:Lt}});globalThis.process=globalThis.process||{env:{SHIFTMATE_AI:"off"}};var{createApi:rs}=Bt(),{buildSeed:is,isoDate:ds}=ce(),jt="shiftmate-demo-state",Wt={state:null,load(){try{let e=window.localStorage.getItem(jt);e&&(this.state=JSON.parse(e))}catch{this.state=null}(!this.state||this.state.today!==ds(new Date))&&this.reset()},reset(){return this.state=is(new Date),this.save(),this.state},save(){try{window.localStorage.setItem(jt,JSON.stringify(this.state))}catch{}}};Wt.load();var us=rs({store:Wt,aiStatus:()=>({enabled:!1,model:null,reason:"Single-file browser demo (no server)"})});window.SHIFTMATE_LOCAL_API=(e,t,n)=>{let{pathname:o}=new URL(t,"http://local");return us(e,o,n||{})};})();
 </script>
-<script>(()=>{var It=Object.defineProperty;var M=(e,t)=>{for(var s in t)It(e,s,{get:t[s],enumerable:!0})};var W=class{constructor(t){this.s=t}toString(){return this.s}};function Tt(e){return String(e??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}function lt(e){return e instanceof W?e.s:Array.isArray(e)?e.map(lt).join(""):e==null||e===!1||e===!0?"":Tt(e)}function i(e,...t){let s=e[0];return t.forEach((n,a)=>{s+=lt(n)+e[a+1]}),new W(s)}var D={mastered:"Mastered",partial:"Partial",not_understood:"Not understood",not_covered:"Not covered"},Lt={pass:"Pass",mid:"Mid",low:"Low",not_submitted:"Not submitted"};function E(e,t){return i`<span class="mchip m-${e}" title="${D[e]||e}">${t||D[e]||e}</span>`}function ct(e){let t=e.total||1,s=e.counts,n=(a,o,d)=>a?i`<span class="${o}" style="width:${a/t*100}%" title="${d}: ${a}"></span>`:"";return i`<div class="bar" role="img" aria-label="${s.mastered} mastered, ${s.partial} partial, ${s.not_understood} not understood, ${s.not_covered} not covered">
+<script>(()=>{var Tt=Object.defineProperty;var M=(e,t)=>{for(var s in t)Tt(e,s,{get:t[s],enumerable:!0})};var W=class{constructor(t){this.s=t}toString(){return this.s}};function Lt(e){return String(e??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}function lt(e){return e instanceof W?e.s:Array.isArray(e)?e.map(lt).join(""):e==null||e===!1||e===!0?"":Lt(e)}function i(e,...t){let s=e[0];return t.forEach((n,a)=>{s+=lt(n)+e[a+1]}),new W(s)}var D={mastered:"Mastered",partial:"Partial",not_understood:"Not understood",not_covered:"Not covered"},qt={pass:"Pass",mid:"Mid",low:"Low",not_submitted:"Not submitted"};function E(e,t){return i`<span class="mchip m-${e}" title="${D[e]||e}">${t||D[e]||e}</span>`}function ct(e){let t=e.total||1,s=e.counts,n=(a,o,d)=>a?i`<span class="${o}" style="width:${a/t*100}%" title="${d}: ${a}"></span>`:"";return i`<div class="bar" role="img" aria-label="${s.mastered} mastered, ${s.partial} partial, ${s.not_understood} not understood, ${s.not_covered} not covered">
     ${n(s.mastered,"m-mastered","Mastered")}${n(s.partial,"m-partial","Partial")}${n(s.not_understood,"m-not_understood","Not understood")}${n(s.not_covered,"m-not_covered","Not covered")}
-  </div>`}function P(e,t){return i`<span class="badge ${e==="pass"?"b-pass":e==="mid"?"b-mid":e==="low"?"b-low":"b-none"}">${t||Lt[e]||e}</span>`}function B(e){return i`<span class="oc oc-${e}">${e==="BLANK"?"\\Blank\\":e}</span>`}function _(e,t){let s={on_site:["On site","tone-ok"],expected:["Expected","tone-info"],leave:["On leave","tone-bad"],rescheduled:["Rescheduled","tone-warn"]},[n,a]=s[e]||[e,""];return i`<span class="chip ${a}">${n}</span>${t==="online"&&e!=="leave"?i` <span class="chip tone-warn">Online</span>`:""}`}function F(e){return i`<span class="chip">${{en:"EN",zh:"\u4E2D\u6587",mixed:"\u4E2D/EN"}[e]||e}</span>`}function $(e){return String(e||"").slice(11,16)}function y(e){return e?new Date(`${String(e).slice(0,10)}T00:00:00`).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"}):""}function I(e,t,s){return`${e} ${e===1?t:s||`${t}s`}`}var U={};M(U,{on:()=>Wt,render:()=>Rt});var ut={high:"bad",medium:"warn",low:"info"};function qt(e){return e.alerts.length?i`<section class="card" style="margin-bottom:14px">
+  </div>`}function P(e,t){return i`<span class="badge ${e==="pass"?"b-pass":e==="mid"?"b-mid":e==="low"?"b-low":"b-none"}">${t||qt[e]||e}</span>`}function B(e){return i`<span class="oc oc-${e}">${e==="BLANK"?"\\Blank\\":e}</span>`}function _(e,t){let s={on_site:["On site","tone-ok"],expected:["Expected","tone-info"],leave:["On leave","tone-bad"],rescheduled:["Rescheduled","tone-warn"]},[n,a]=s[e]||[e,""];return i`<span class="chip ${a}">${n}</span>${t==="online"&&e!=="leave"?i` <span class="chip tone-warn">Online</span>`:""}`}function F(e){return i`<span class="chip">${{en:"EN",zh:"\u4E2D\u6587",mixed:"\u4E2D/EN"}[e]||e}</span>`}function $(e){return String(e||"").slice(11,16)}function y(e){return e?new Date(`${String(e).slice(0,10)}T00:00:00`).toLocaleDateString("en-AU",{weekday:"short",day:"numeric",month:"short"}):""}function I(e,t,s){return`${e} ${e===1?t:s||`${t}s`}`}var U={};M(U,{on:()=>Dt,render:()=>Wt});var ut={high:"bad",medium:"warn",low:"info"};function Nt(e){return e.alerts.length?i`<section class="card" style="margin-bottom:14px">
     <div class="card-head"><h2>Before the first lesson</h2><span class="card-sub">Step 3: changes to confirm and pass on</span></div>
     ${e.alerts.map(t=>i`<div class="callout tone-${ut[t.level]}">
       <span class="dot ${ut[t.level]}" style="margin-top:6px"></span>
@@ -458,10 +458,10 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       ${t.kind==="marking"?i`<a class="btn btn-xs" href="#/marking">Mark now</a>`:""}
       ${t.kind==="inbox"?i`<a class="btn btn-xs" href="#/inbox">Open inbox</a>`:""}
     </div>`)}
-  </section>`:""}function Nt(e,t){if(!e.teacherNotices.length)return"";let s=n=>(t.data.state.students.find(a=>a.id===n)||{}).name;return i`<section class="card" style="margin-bottom:14px">
+  </section>`:""}function Ot(e,t){if(!e.teacherNotices.length)return"";let s=n=>(t.data.state.students.find(a=>a.id===n)||{}).name;return i`<section class="card" style="margin-bottom:14px">
     <div class="card-head"><h2>Passed on to teachers</h2><span class="card-sub">Step 3</span></div>
     <ul class="list">${e.teacherNotices.map(n=>i`<li><strong>${n.teacher}</strong> · ${$(n.at)} · ${n.text} <span class="faint">(${s(n.studentId)})</span></li>`)}</ul>
-  </section>`}function Ot(e){let t=e.card;return i`<article class="card lesson-card ${e.status==="leave"?"is-leave":""}">
+  </section>`}function Rt(e){let t=e.card;return i`<article class="card lesson-card ${e.status==="leave"?"is-leave":""}">
     <div class="who">
       <div>
         <div class="time">${e.start}-${e.end} · ${e.mode==="online"?"Zoom":e.room} · ${e.teacher}</div>
@@ -501,7 +501,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       ${e.status==="expected"&&e.mode==="in_person"?i`<button class="btn btn-sm" data-action="checkin" data-id="${e.id}">Check in</button>`:""}
       <a class="btn btn-sm btn-ghost" href="#/records/${t.student.id}">Open records</a>
     </div>
-  </article>`}function Rt(e){let{briefing:t}=e.data.views,{state:s}=e.data,n=t.counts,a=s.inbox.filter(d=>d.status!=="sent").length,o=(d,r)=>i`<div class="card stat"><div class="num">${d}</div><div class="lbl">${r}</div></div>`;return i`
+  </article>`}function Wt(e){let{briefing:t}=e.data.views,{state:s}=e.data,n=t.counts,a=s.inbox.filter(d=>d.status!=="sent").length,o=(d,r)=>i`<div class="card stat"><div class="num">${d}</div><div class="lbl">${r}</div></div>`;return i`
     <div class="page-head">
       <div>
         <div class="kicker">14:15-14:30 · Phase 2 · Steps 2-5</div>
@@ -518,9 +518,9 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       ${o(a,"WeChat waiting")}
       ${o(s.pendingPapers.length,"Papers to mark")}
     </div>
-    ${qt(t)}
-    ${Nt(t,e)}
-    <div class="cards">${t.lessons.map(d=>Ot(d))}</div>`}async function Wt(e,t,s,n,a){e==="click"&&t==="checkin"&&await a.run(()=>a.api.post(`/api/timetable/${s.dataset.id}/checkin`),"Checked in")&&a.refresh()}var V={};M(V,{mount:()=>Ft,on:()=>Ut,render:()=>zt,resetLocal:()=>K});var m={busy:new Set,drafts:{},checks:{}};function K(){m.busy.clear(),m.drafts={},m.checks={}}var Dt={today:["Today","tone-bad"],soon:["Soon","tone-warn"],low:["Low",""]},Bt={new:["New","tone-info"],triaged:["Draft ready","tone-warn"],sent:["Sent","tone-ok"]};function pt(e,t){let s=e.data.state.students.find(n=>n.id===t.studentId);return s?t.relation==="parent"?`${s.parent.name} (${s.name}'s ${s.parent.relation})`:s.name:t.studentId}function ht(e,t){let s=e.data.state.inbox;if(t[0]&&s.some(a=>a.id===t[0]))return t[0];let n=s.find(a=>a.status!=="sent");return n?n.id:s[0]&&s[0].id}function _t(e,t,s){let[n,a]=Bt[t.status]||[t.status,""],o=t.triage&&t.triage.urgency==="today"&&t.status!=="sent";return i`<button class="msg-item ${s?"active":""} ${t.status==="sent"?"is-sent":""}" data-action="select" data-id="${t.id}">
+    ${Nt(t)}
+    ${Ot(t,e)}
+    <div class="cards">${t.lessons.map(d=>Rt(d))}</div>`}async function Dt(e,t,s,n,a){e==="click"&&t==="checkin"&&await a.run(()=>a.api.post(`/api/timetable/${s.dataset.id}/checkin`),"Checked in")&&a.refresh()}var V={};M(V,{mount:()=>Ut,on:()=>Kt,render:()=>Ft,resetLocal:()=>K});var m={busy:new Set,drafts:{},checks:{}};function K(){m.busy.clear(),m.drafts={},m.checks={}}var Bt={today:["Today","tone-bad"],soon:["Soon","tone-warn"],low:["Low",""]},_t={new:["New","tone-info"],triaged:["Draft ready","tone-warn"],sent:["Sent","tone-ok"]};function pt(e,t){let s=e.data.state.students.find(n=>n.id===t.studentId);return s?t.relation==="parent"?`${s.parent.name} (${s.name}'s ${s.parent.relation})`:s.name:t.studentId}function ht(e,t){let s=e.data.state.inbox;if(t[0]&&s.some(a=>a.id===t[0]))return t[0];let n=s.find(a=>a.status!=="sent");return n?n.id:s[0]&&s[0].id}function Qt(e,t,s){let[n,a]=_t[t.status]||[t.status,""],o=t.triage&&t.triage.urgency==="today"&&t.status!=="sent";return i`<button class="msg-item ${s?"active":""} ${t.status==="sent"?"is-sent":""}" data-action="select" data-id="${t.id}">
     <div class="meta">
       <strong>${pt(e,t)}</strong>
       <span class="faint mono">${$(t.receivedAt)}</span>
@@ -532,10 +532,10 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       ${m.busy.has(t.id)?i`<span class="spinner" aria-label="Drafting"></span>`:""}
       ${o?i`<span class="chip tone-bad">Today</span>`:""}
     </div>
-  </button>`}function Qt(e){let t=e.triage;if(!t.actions.length)return i`<p class="muted">No records change. The reply is the whole job.</p>`;let s=m.checks[e.id]||new Set(t.actions.map((n,a)=>a));return m.checks[e.id]=s,i`${t.actions.map((n,a)=>i`<label class="check">
+  </button>`}function Ht(e){let t=e.triage;if(!t.actions.length)return i`<p class="muted">No records change. The reply is the whole job.</p>`;let s=m.checks[e.id]||new Set(t.actions.map((n,a)=>a));return m.checks[e.id]=s,i`${t.actions.map((n,a)=>i`<label class="check">
     <input type="checkbox" data-action="toggle-action" data-index="${a}" ${s.has(a)?i`checked`:""}>
     <span>${n.label}</span>
-  </label>`)}`}function Ht(e,t){let s=t.triage,n=e.data.constants,[a,o]=Dt[s.urgency]||[s.urgency,""],d=m.drafts[t.id]!==void 0?m.drafts[t.id]:s.draft,r=s.replyLanguage==="zh"?"\u4E2D\u6587":"English",c=s.mode==="claude"?`Claude (${s.model})`:"Rules engine (offline)";return i`
+  </label>`)}`}function jt(e,t){let s=t.triage,n=e.data.constants,[a,o]=Bt[s.urgency]||[s.urgency,""],d=m.drafts[t.id]!==void 0?m.drafts[t.id]:s.draft,r=s.replyLanguage==="zh"?"\u4E2D\u6587":"English",c=s.mode==="claude"?`Claude (${s.model})`:"Rules engine (offline)";return i`
     <div class="section-title">${s.mode==="claude"?"What Claude read":"What the rules engine read"}</div>
     <p style="font-size:15px"><strong>${s.summary}</strong></p>
     <div class="row" style="margin-top:8px">
@@ -571,7 +571,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
     </div>
 
     <div class="section-title">When you approve</div>
-    ${Qt(t)}
+    ${Ht(t)}
 
     <details style="margin-top:10px">
       <summary>Privacy: what left the centre for this draft</summary>
@@ -582,7 +582,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <button class="btn btn-primary" data-action="approve">Approve, apply and copy reply</button>
       <button class="btn" data-action="redraft">Redraft</button>
       ${s.mode==="claude"?i`<button class="btn btn-ghost" data-action="redraft-rules">Redraft with rules only</button>`:""}
-    </div>`}function jt(e,t){if(!t)return i`<div class="card"><p class="muted">No messages.</p></div>`;let s=e.data.state.students.find(a=>a.id===t.studentId),n=m.busy.has(t.id);return i`<section class="card">
+    </div>`}function zt(e,t){if(!t)return i`<div class="card"><p class="muted">No messages.</p></div>`;let s=e.data.state.students.find(a=>a.id===t.studentId),n=m.busy.has(t.id);return i`<section class="card">
     <div class="card-head">
       <div>
         <h2>${pt(e,t)}</h2>
@@ -595,8 +595,8 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <div class="section-title">Your reply · sent ${$(t.sentAt)}</div>
       <div class="bubble out">${t.reply}</div>
       ${t.appliedActions&&t.appliedActions.length?i`<div class="section-title">Applied</div><ul class="list">${t.appliedActions.map(a=>i`<li>${a}</li>`)}</ul>`:""}
-    `:n?i`<div class="row" style="margin-top:16px"><span class="spinner"></span><span class="muted">${e.data.ai.enabled?"Claude is reading the message and the records...":"Reading the message and the records..."}</span></div>`:t.triage?Ht(e,t):i`<div class="row" style="margin-top:16px"><button class="btn btn-primary" data-action="triage">Draft a reply</button></div>`}
-  </section>`}function zt(e,t){let{inbox:s}=e.data.state,n=ht(e,t),a=s.find(r=>r.id===n),o=s.filter(r=>r.status==="new").length,d=s.filter(r=>r.status!=="sent").length;return i`
+    `:n?i`<div class="row" style="margin-top:16px"><span class="spinner"></span><span class="muted">${e.data.ai.enabled?"Claude is reading the message and the records...":"Reading the message and the records..."}</span></div>`:t.triage?jt(e,t):i`<div class="row" style="margin-top:16px"><button class="btn btn-primary" data-action="triage">Draft a reply</button></div>`}
+  </section>`}function Ft(e,t){let{inbox:s}=e.data.state,n=ht(e,t),a=s.find(r=>r.id===n),o=s.filter(r=>r.status==="new").length,d=s.filter(r=>r.status!=="sent").length;return i`
     <div class="page-head">
       <div>
         <div class="kicker">14:30-16:00 · Phase 3A · Steps 6-7</div>
@@ -610,10 +610,10 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
     <div class="inbox">
       <div class="card msg-list">
         <div class="row-between" style="padding:6px 8px 8px"><strong>${d} open</strong><span class="faint">${s.length} today</span></div>
-        ${s.map(r=>_t(e,r,r.id===n))}
+        ${s.map(r=>Qt(e,r,r.id===n))}
       </div>
-      <div id="inbox-detail" data-id="${n}">${jt(e,a)}</div>
-    </div>`}async function Q(e,t,s={}){m.busy.add(t),delete m.drafts[t],delete m.checks[t],e.route.page==="inbox"&&e.navigate(`#/inbox/${t}`);try{await e.api.post(`/api/inbox/${t}/triage`,s)}catch(n){e.toast(n.message,"bad")}finally{m.busy.delete(t)}await e.refresh()}function Ft(e,t,s){let n=ht(t,s),a=t.data.state.inbox.find(o=>o.id===n);a&&!a.triage&&a.status!=="sent"&&!m.busy.has(n)&&Q(t,n)}async function Ut(e,t,s,n,a){let o=document.getElementById("inbox-detail"),d=o?o.dataset.id:null;if(e==="input"&&t==="edit-draft"){m.drafts[d]=s.value;return}if(e==="change"&&t==="toggle-action"){let r=m.checks[d]||new Set,c=Number(s.dataset.index);s.checked?r.add(c):r.delete(c),m.checks[d]=r;return}if(e==="change"&&t==="recategorise"&&s.value){await Q(a,d,{intent:s.value});return}if(e==="click"){if(t==="select")a.navigate(`#/inbox/${s.dataset.id}`);else if(t==="triage"||t==="redraft")await Q(a,d);else if(t==="redraft-rules")await Q(a,d,{forceRules:!0});else if(t==="triage-all"){let r=a.data.state.inbox.filter(c=>c.status==="new").map(c=>c.id);r.forEach(c=>m.busy.add(c)),a.refresh();for(let c of r){try{await a.api.post(`/api/inbox/${c}/triage`,{})}catch(u){a.toast(u.message,"bad")}m.busy.delete(c)}await a.refresh(),a.toast(`${r.length} drafts ready for review`)}else if(t==="approve"){let r=a.data.state.inbox.find(p=>p.id===d),c=m.drafts[d]!==void 0?m.drafts[d]:r.triage.draft,u=m.checks[d]||new Set(r.triage.actions.map((p,v)=>v));if(!await a.run(()=>a.api.post(`/api/inbox/${d}/approve`,{reply:c,actions:[...u]})))return;let S=await a.copy(c);a.toast(S?"Reply copied: paste it into Work WeChat":"Approved. Copy the reply into Work WeChat"),delete m.drafts[d],delete m.checks[d],await a.refresh();let f=a.data.state.inbox.find(p=>p.status!=="sent");f&&a.navigate(`#/inbox/${f.id}`)}}}var X={};M(X,{mount:()=>te,on:()=>ee,render:()=>Xt,resetLocal:()=>J});var Kt=[{o:"DONE",label:"\u2713",key:"d",title:"DONE: correct"},{o:"W",label:"W",key:"w",title:"W: wrong (knowledge gap)"},{o:"C",label:"C",key:"c",title:"C: careless error"},{o:"BLANK",label:"\u2014",key:"b",title:"Blank: not attempted"}],mt={d:"DONE",v:"DONE",1:"DONE",w:"W",x:"W",c:"C",b:"BLANK","-":"BLANK",0:"BLANK"},gt={high:"bad",medium:"warn",low:"info"},l=w(null);function w(e){return{paperId:e?e.id:null,outcomes:{},partial:{},timing:e?{...e.timing}:{},blanks:{},action:null,tutorPass:!1,addQa:!0,note:"",focusIdx:0,quick:"",quickInfo:null,preview:null,seq:0,result:null}}function J(){l=w(null)}function x(e){return e.data.views.pendingPapers}function A(e){return x(e).find(t=>t.id===l.paperId)||null}function q(e,t){return e.data.syllabus.tests.find(s=>s.id===t.testId)}function Y(e,t){let s=e.data.syllabus.points.find(n=>n.id===t);return s?s.title:""}function Vt(e){let t=x(e),s=e.data.state.markingRecords.filter(a=>a.source==="shiftmate"&&a.date===e.data.state.today),n=a=>(e.data.state.students.find(o=>o.id===a)||{}).name;return i`<div class="paper-strip" aria-label="Submitted papers">
+      <div id="inbox-detail" data-id="${n}">${zt(e,a)}</div>
+    </div>`}async function Q(e,t,s={}){m.busy.add(t),delete m.drafts[t],delete m.checks[t],e.route.page==="inbox"&&e.navigate(`#/inbox/${t}`);try{await e.api.post(`/api/inbox/${t}/triage`,s)}catch(n){e.toast(n.message,"bad")}finally{m.busy.delete(t)}await e.refresh()}function Ut(e,t,s){let n=ht(t,s),a=t.data.state.inbox.find(o=>o.id===n);a&&!a.triage&&a.status!=="sent"&&!m.busy.has(n)&&Q(t,n)}async function Kt(e,t,s,n,a){let o=document.getElementById("inbox-detail"),d=o?o.dataset.id:null;if(e==="input"&&t==="edit-draft"){m.drafts[d]=s.value;return}if(e==="change"&&t==="toggle-action"){let r=m.checks[d]||new Set,c=Number(s.dataset.index);s.checked?r.add(c):r.delete(c),m.checks[d]=r;return}if(e==="change"&&t==="recategorise"&&s.value){await Q(a,d,{intent:s.value});return}if(e==="click"){if(t==="select")a.navigate(`#/inbox/${s.dataset.id}`);else if(t==="triage"||t==="redraft")await Q(a,d);else if(t==="redraft-rules")await Q(a,d,{forceRules:!0});else if(t==="triage-all"){let r=a.data.state.inbox.filter(c=>c.status==="new").map(c=>c.id);r.forEach(c=>m.busy.add(c)),a.refresh();for(let c of r){try{await a.api.post(`/api/inbox/${c}/triage`,{})}catch(u){a.toast(u.message,"bad")}m.busy.delete(c)}await a.refresh(),a.toast(`${r.length} drafts ready for review`)}else if(t==="approve"){let r=a.data.state.inbox.find(p=>p.id===d),c=m.drafts[d]!==void 0?m.drafts[d]:r.triage.draft,u=m.checks[d]||new Set(r.triage.actions.map((p,v)=>v));if(!await a.run(()=>a.api.post(`/api/inbox/${d}/approve`,{reply:c,actions:[...u]})))return;let S=await a.copy(c);a.toast(S?"Reply copied: paste it into Work WeChat":"Approved. Copy the reply into Work WeChat"),delete m.drafts[d],delete m.checks[d],await a.refresh();let f=a.data.state.inbox.find(p=>p.status!=="sent");f&&a.navigate(`#/inbox/${f.id}`)}}}var X={};M(X,{mount:()=>ee,on:()=>se,render:()=>te,resetLocal:()=>J});var Vt=[{o:"DONE",label:"\u2713",key:"d",title:"DONE: correct"},{o:"W",label:"W",key:"w",title:"W: wrong (knowledge gap)"},{o:"C",label:"C",key:"c",title:"C: careless error"},{o:"BLANK",label:"\u2014",key:"b",title:"Blank: not attempted"}],mt={d:"DONE",v:"DONE",1:"DONE",w:"W",x:"W",c:"C",b:"BLANK","-":"BLANK",0:"BLANK"},gt={high:"bad",medium:"warn",low:"info"},l=w(null);function w(e){return{paperId:e?e.id:null,outcomes:{},partial:{},timing:e?{...e.timing}:{},blanks:{},action:null,tutorPass:!1,addQa:!0,note:"",focusIdx:0,quick:"",quickInfo:null,preview:null,seq:0,result:null}}function J(){l=w(null)}function x(e){return e.data.views.pendingPapers}function A(e){return x(e).find(t=>t.id===l.paperId)||null}function q(e,t){return e.data.syllabus.tests.find(s=>s.id===t.testId)}function Y(e,t){let s=e.data.syllabus.points.find(n=>n.id===t);return s?s.title:""}function Gt(e){let t=x(e),s=e.data.state.markingRecords.filter(a=>a.source==="shiftmate"&&a.date===e.data.state.today),n=a=>(e.data.state.students.find(o=>o.id===a)||{}).name;return i`<div class="paper-strip" aria-label="Submitted papers">
     ${t.map(a=>i`<button class="paper-item ${a.id===l.paperId?"active":""}" data-action="pick" data-id="${a.id}">
       <strong>${a.student.name}</strong>
       <div>${a.testName}</div>
@@ -625,7 +625,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <div class="card-sub">Marked ${P(a.band,`${a.pct}%`)}</div>
     </div>`)}
     ${t.length?"":i`<div class="paper-item done"><strong>All marked</strong><div class="card-sub">No papers waiting</div></div>`}
-  </div>`}function Gt(e,t,s){return i`<table class="pad-table">
+  </div>`}function Yt(e,t,s){return i`<table class="pad-table">
     <thead><tr><th>Q</th><th>Syllabus point</th><th class="num">Marks</th><th>Outcome</th><th title="Optional: award part marks, e.g. method marks on a careless error">Part</th></tr></thead>
     <tbody>
       ${s.questions.map((n,a)=>{let o=l.outcomes[n.q];return i`<tr class="${a===l.focusIdx?"focused":""}" data-action="focus-row" data-idx="${a}">
@@ -633,7 +633,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
           <td class="pt" title="${n.point} ${Y(e,n.point)}"><span class="mono">${n.point}</span> <span class="muted" style="font-size:12px">${Y(e,n.point)}</span></td>
           <td class="num">${n.marks}</td>
           <td><div class="seg" role="group" aria-label="Outcome for question ${n.q}">
-            ${Kt.map(d=>i`<button type="button" class="${o===d.o?`on-${d.o}`:""}" title="${d.title} (key ${d.key})" aria-pressed="${o===d.o}" data-action="set" data-q="${n.q}" data-o="${d.o}">${d.label}</button>`)}
+            ${Vt.map(d=>i`<button type="button" class="${o===d.o?`on-${d.o}`:""}" title="${d.title} (key ${d.key})" aria-pressed="${o===d.o}" data-action="set" data-q="${n.q}" data-o="${d.o}">${d.label}</button>`)}
           </div></td>
           <td><input class="pm" type="number" min="0" max="${n.marks}" step="1" placeholder="-" value="${l.partial[n.q]===void 0?"":l.partial[n.q]}" data-action="partial" data-q="${n.q}" aria-label="Part marks for question ${n.q}"></td>
         </tr>`})}
@@ -664,7 +664,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <span class="spacer"></span>
       <span class="faint" style="font-size:12px">Keys: <span class="kbd">D</span> ✓ <span class="kbd">W</span> wrong <span class="kbd">C</span> careless <span class="kbd">B</span> blank <span class="kbd">↑↓</span></span>
     </div>
-    <div style="overflow-x:auto">${Gt(e,t,s)}</div>
+    <div style="overflow-x:auto">${Yt(e,t,s)}</div>
 
     <div class="section-title">Exam timing (Scenario C, step 5)</div>
     <div class="grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
@@ -673,7 +673,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <label class="field">End, 2nd pass<input type="text" inputmode="numeric" placeholder="16:58" data-action="timing" data-k="end2" value="${l.timing.end2||""}"></label>
       <label class="field">Checks<input type="number" min="0" max="9" data-action="timing" data-k="checks" value="${l.timing.checks===void 0?"":l.timing.checks}"></label>
     </div>
-  </section>`}function Yt(e,t,s){let n=t.exhibit2.changes.filter(r=>r.changed),a=t.exhibit2.changes.filter(r=>!r.changed),o=t.exhibit2.summaryBefore,d=t.exhibit2.summaryAfter;return i`
+  </section>`}function Zt(e,t,s){let n=t.exhibit2.changes.filter(r=>r.changed),a=t.exhibit2.changes.filter(r=>!r.changed),o=t.exhibit2.summaryBefore,d=t.exhibit2.summaryAfter;return i`
     <div class="section-title">What will be written</div>
     <div class="card" style="box-shadow:none;padding:12px">
       <div class="row-between"><strong><span class="exhibit-tag">Exhibit 1</span> Marking Sheet</strong><span class="card-sub">${t.exhibit1.length} rows</span></div>
@@ -702,7 +702,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
     <div class="card" style="box-shadow:none;padding:12px;margin-top:8px">
       <div class="row-between"><strong><span class="exhibit-tag">Log</span> Student exam log</strong></div>
       <p style="margin-top:6px" class="mono">${t.examLog.paper} · ${t.examLog.start||"--:--"} → ${t.examLog.end1||"--:--"} → ${t.examLog.end2||"--:--"} · ${t.examLog.checks===""?"?":t.examLog.checks} check(s) · ${t.examLog.pct}%</p>
-    </div>`}function Zt(e,t,s){let n=e.data.constants.nextSteps,a=s.kind==="vcaa"?["next_mock","targeted_practice"]:["move_on","schedule_retest","redo_demo","revise_module","escalate_teacher"],o=l.action||t.suggestion.action,d=t.score.pct<e.data.constants.passPct;return i`
+    </div>`}function Jt(e,t,s){let n=e.data.constants.nextSteps,a=s.kind==="vcaa"?["next_mock","targeted_practice"]:["move_on","schedule_retest","redo_demo","revise_module","escalate_teacher"],o=l.action||t.suggestion.action,d=t.score.pct<e.data.constants.passPct;return i`
     <div class="section-title">Next step (Scenario C, step 4): your call</div>
     <div class="callout tone-info"><div><strong>Suggested: ${t.suggestion.label}</strong><ul class="list" style="margin-top:4px">${t.suggestion.reasons.map(r=>i`<li>${r}</li>`)}</ul></div></div>
     <div class="radio-list" style="margin-top:8px">
@@ -714,7 +714,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
     ${s.kind==="module"&&d?i`<label class="check"><input type="checkbox" data-action="tutor-pass" ${l.tutorPass?i`checked`:""}>
       <span>Pass on tutor judgement (recorded as <strong>${t.score.pct}% *P</strong> in Exhibit 3)</span></label>`:""}
     ${t.suggestion.gapPoints.length?i`<label class="check"><input type="checkbox" data-action="add-qa" ${l.addQa?i`checked`:""}>
-      <span>Add ${t.suggestion.gapPoints.join(", ")} to the Q&A list for the exam review</span></label>`:""}`}function bt(e){let t=A(e);if(l.result)return Jt(e);if(!t)return i`<section class="card"><h2>One entry, three sheets</h2>
+      <span>Add ${t.suggestion.gapPoints.join(", ")} to the Q&A list for the exam review</span></label>`:""}`}function bt(e){let t=A(e);if(l.result)return Xt(e);if(!t)return i`<section class="card"><h2>One entry, three sheets</h2>
       <p class="muted" style="margin-top:6px">Today the same marking result is typed into the Marking Sheet, re-coloured cell by cell in the Progress Sheet and entered again in the Exam Statistics. Here the tutor marks once and ShiftMate prepares all three updates for one confirmation.</p></section>`;let s=q(e,t),n=l.preview,a=s.questions.filter(u=>l.outcomes[u.q]).length;if(a<s.questions.length)return i`<section class="card">
       <h2>What will change</h2>
       <p class="muted" style="margin-top:6px">${s.questions.length-a} question(s) to go. The preview of all three sheets appears when every question has a mark.</p>
@@ -734,14 +734,14 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
     ${o.issues.length?i`<div class="section-title">What the paper shows (Scenario C, step 2)</div>
       ${o.issues.map(u=>i`<div class="callout tone-${gt[u.severity]}"><span class="dot ${gt[u.severity]}" style="margin-top:6px"></span><div><strong>${u.label}</strong><br><span style="font-size:12.5px">${u.detail}</span></div></div>`)}`:i`<div class="callout tone-ok" style="margin-top:8px">Clean paper: no gaps, careless errors or timing problems.</div>`}
 
+    ${Jt(e,o,s)}
     ${Zt(e,o,s)}
-    ${Yt(e,o,s)}
 
     <div class="row" style="margin-top:14px">
       <button class="btn btn-primary" data-action="apply" ${r.length?i`disabled title="Say why each blank was left first"`:""}>Apply to all three sheets</button>
       <span class="muted" style="font-size:12.5px">${r.length?`Answer the blank question${r.length>1?"s":""} above first.`:"By hand: about 6 minutes across three spreadsheets."}</span>
     </div>
-  </section>`}function Jt(e){let t=l.result;return i`<section class="card">
+  </section>`}function Xt(e){let t=l.result;return i`<section class="card">
     <div class="card-head"><h2>Written to all three sheets</h2><span class="chip tone-ok">Done</span></div>
     <ul class="list">
       <li><span class="exhibit-tag">Exhibit 1</span> ${t.summary.exhibit1Rows} rows added to the Marking Sheet</li>
@@ -757,7 +757,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <button class="btn btn-primary" data-action="next">Mark next paper</button>
       <a class="btn btn-ghost" href="#/records/${t.record.studentId}">Open records</a>
     </div>
-  </section>`}function Xt(e,t){return t[0]&&t[0]!==l.paperId&&x(e).some(s=>s.id===t[0])&&(l=w(x(e).find(s=>s.id===t[0]))),!l.result&&l.paperId&&!A(e)&&(l=w(null)),!l.paperId&&!l.result&&x(e).length&&(l=w(x(e)[0])),i`
+  </section>`}function te(e,t){return t[0]&&t[0]!==l.paperId&&x(e).some(s=>s.id===t[0])&&(l=w(x(e).find(s=>s.id===t[0]))),!l.result&&l.paperId&&!A(e)&&(l=w(null)),!l.paperId&&!l.result&&x(e).length&&(l=w(x(e)[0])),i`
     <div class="page-head">
       <div>
         <div class="kicker">14:30-16:00 · Phase 3B · Step 8</div>
@@ -765,11 +765,11 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
         <p>Mark each question once. ShiftMate writes the Marking Sheet, re-colours the Progress Sheet, fills the Exam Statistics and the exam log, and separates knowledge gaps (W) from careless errors (C). All rules, no AI: you confirm every change.</p>
       </div>
     </div>
-    ${Vt(e)}
+    ${Gt(e)}
     <div class="marking">
       <div id="mk-pad-wrap">${ft(e)}</div>
       <div class="mk-preview" id="mk-preview">${bt(e)}</div>
-    </div>`}function T(e){let t=document.getElementById("mk-pad-wrap");t&&(t.innerHTML=String(ft(e)))}function L(e){let t=document.getElementById("mk-preview");t&&(t.innerHTML=String(bt(e)))}function $t(){return{paperId:l.paperId,outcomes:l.outcomes,partialMarks:l.partial,timing:l.timing,blankResolutions:l.blanks}}var vt=null;function C(e){clearTimeout(vt),vt=setTimeout(async()=>{let t=A(e);if(!t)return;if(q(e,t).questions.some(a=>!l.outcomes[a.q])){l.preview=null,L(e);return}let n=++l.seq;try{let a=await e.api.post("/api/marking/preview",$t());if(n!==l.seq)return;l.preview=a,l.action||(l.action=null),L(e)}catch(a){e.toast(a.message,"bad")}},120)}function te(e,t){C(t)}function Z(e,t,s){l.outcomes[t]=s,s!=="BLANK"&&delete l.blanks[t],l.result=null}async function G(e){let t=A(e);if(!t)return;let s=await e.run(()=>e.api.post("/api/marking/parse",{testId:t.testId,text:l.quick}));s&&(l.quickInfo=s,Object.entries(s.outcomes).forEach(([n,a])=>Z(e,n,a)),T(e),C(e))}async function ee(e,t,s,n,a){let o=A(a);if(e==="keydown"){let d=n.target.tagName;if(n.target.dataset.action==="quick"&&n.key==="Enter"){n.preventDefault(),await G(a);return}if(!o||l.result||d==="INPUT"||d==="TEXTAREA"||d==="SELECT"||n.metaKey||n.ctrlKey||n.altKey)return;let r=q(a,o),c=n.key.toLowerCase();if(c==="arrowdown"||c==="j")l.focusIdx=Math.min(r.questions.length-1,l.focusIdx+1);else if(c==="arrowup"||c==="k")l.focusIdx=Math.max(0,l.focusIdx-1);else if(mt[c])Z(a,r.questions[l.focusIdx].q,mt[c]),l.focusIdx=Math.min(r.questions.length-1,l.focusIdx+1),C(a);else return;n.preventDefault(),T(a);return}if(e==="input"){t==="quick"&&(l.quick=s.value),t==="partial"&&(s.value===""?delete l.partial[s.dataset.q]:l.partial[s.dataset.q]=Number(s.value),C(a)),t==="timing"&&(l.timing[s.dataset.k]=s.dataset.k==="checks"?s.value===""?"":Number(s.value):s.value,C(a));return}if(e==="change"){t==="blank"?(l.blanks[s.dataset.q]=s.value,C(a)):t==="decide"?(l.action=s.value,L(a)):t==="tutor-pass"?(l.tutorPass=s.checked,L(a)):t==="add-qa"&&(l.addQa=s.checked);return}if(e==="click")if(t==="pick")l=w(x(a).find(d=>d.id===s.dataset.id)),a.navigate(`#/marking/${s.dataset.id}`);else if(t==="set"){let d=q(a,o);Z(a,s.dataset.q,s.dataset.o),l.focusIdx=Math.min(d.questions.length-1,d.questions.findIndex(r=>r.q===s.dataset.q)+1),T(a),C(a)}else if(t==="focus-row"){if(n.target.closest("button, input"))return;l.focusIdx=Number(s.dataset.idx),T(a)}else if(t==="quick-apply")await G(a);else if(t==="sample")l.quick=o.sampleMarks||"",await G(a);else if(t==="clear")l=w(o),T(a),L(a);else if(t==="apply"){let d=l.preview&&l.preview.plan,r={...$t(),decision:{action:l.action||d.suggestion.action,tutorPass:l.tutorPass,addQa:l.addQa,note:l.note}},c=await a.run(()=>a.api.post("/api/marking/apply",r));if(!c)return;l.result=c,l.paperId=null,a.toast("Exhibits 1, 2 and 3 updated in one step"),await a.refresh()}else if(t==="copy-note"){let d=document.getElementById("parent-note").value;a.toast(await a.copy(d)?"Note copied for WeChat":"Select the text and copy it")}else t==="next"&&(l=w(x(a)[0]||null),a.navigate(l.paperId?`#/marking/${l.paperId}`:"#/marking"),l.paperId||a.refresh())}var tt={};M(tt,{on:()=>oe,render:()=>ie});var yt=[["working","Working shown clearly"],["accuracy","Accurate answers"],["method","Right choice of method"],["concepts","Grasps the core concepts"]];function xt(e,t){return e.data.state.students.find(s=>s.id===t)}function se(e,t,s){let n=e.data.syllabus.points.filter(o=>o.module===s),a=e.data.state.progress[t.id]||{};return i`<form class="modal-body" data-form="demo" onsubmit="return false">
+    </div>`}function T(e){let t=document.getElementById("mk-pad-wrap");t&&(t.innerHTML=String(ft(e)))}function L(e){let t=document.getElementById("mk-preview");t&&(t.innerHTML=String(bt(e)))}function $t(){return{paperId:l.paperId,outcomes:l.outcomes,partialMarks:l.partial,timing:l.timing,blankResolutions:l.blanks}}var vt=null;function C(e){clearTimeout(vt),vt=setTimeout(async()=>{let t=A(e);if(!t)return;if(q(e,t).questions.some(a=>!l.outcomes[a.q])){l.preview=null,L(e);return}let n=++l.seq;try{let a=await e.api.post("/api/marking/preview",$t());if(n!==l.seq)return;l.preview=a,l.action||(l.action=null),L(e)}catch(a){e.toast(a.message,"bad")}},120)}function ee(e,t){C(t)}function Z(e,t,s){l.outcomes[t]=s,s!=="BLANK"&&delete l.blanks[t],l.result=null}async function G(e){let t=A(e);if(!t)return;let s=await e.run(()=>e.api.post("/api/marking/parse",{testId:t.testId,text:l.quick}));s&&(l.quickInfo=s,Object.entries(s.outcomes).forEach(([n,a])=>Z(e,n,a)),T(e),C(e))}async function se(e,t,s,n,a){let o=A(a);if(e==="keydown"){let d=n.target.tagName;if(n.target.dataset.action==="quick"&&n.key==="Enter"){n.preventDefault(),await G(a);return}if(!o||l.result||d==="INPUT"||d==="TEXTAREA"||d==="SELECT"||n.metaKey||n.ctrlKey||n.altKey)return;let r=q(a,o),c=n.key.toLowerCase();if(c==="arrowdown"||c==="j")l.focusIdx=Math.min(r.questions.length-1,l.focusIdx+1);else if(c==="arrowup"||c==="k")l.focusIdx=Math.max(0,l.focusIdx-1);else if(mt[c])Z(a,r.questions[l.focusIdx].q,mt[c]),l.focusIdx=Math.min(r.questions.length-1,l.focusIdx+1),C(a);else return;n.preventDefault(),T(a);return}if(e==="input"){t==="quick"&&(l.quick=s.value),t==="partial"&&(s.value===""?delete l.partial[s.dataset.q]:l.partial[s.dataset.q]=Number(s.value),C(a)),t==="timing"&&(l.timing[s.dataset.k]=s.dataset.k==="checks"?s.value===""?"":Number(s.value):s.value,C(a));return}if(e==="change"){t==="blank"?(l.blanks[s.dataset.q]=s.value,C(a)):t==="decide"?(l.action=s.value,L(a)):t==="tutor-pass"?(l.tutorPass=s.checked,L(a)):t==="add-qa"&&(l.addQa=s.checked);return}if(e==="click")if(t==="pick")l=w(x(a).find(d=>d.id===s.dataset.id)),a.navigate(`#/marking/${s.dataset.id}`);else if(t==="set"){let d=q(a,o);Z(a,s.dataset.q,s.dataset.o),l.focusIdx=Math.min(d.questions.length-1,d.questions.findIndex(r=>r.q===s.dataset.q)+1),T(a),C(a)}else if(t==="focus-row"){if(n.target.closest("button, input"))return;l.focusIdx=Number(s.dataset.idx),T(a)}else if(t==="quick-apply")await G(a);else if(t==="sample")l.quick=o.sampleMarks||"",await G(a);else if(t==="clear")l=w(o),T(a),L(a);else if(t==="apply"){let d=l.preview&&l.preview.plan,r={...$t(),decision:{action:l.action||d.suggestion.action,tutorPass:l.tutorPass,addQa:l.addQa,note:l.note}},c=await a.run(()=>a.api.post("/api/marking/apply",r));if(!c)return;l.result=c,l.paperId=null,a.toast("Exhibits 1, 2 and 3 updated in one step"),await a.refresh()}else if(t==="copy-note"){let d=document.getElementById("parent-note").value;a.toast(await a.copy(d)?"Note copied for WeChat":"Select the text and copy it")}else t==="next"&&(l=w(x(a)[0]||null),a.navigate(l.paperId?`#/marking/${l.paperId}`:"#/marking"),l.paperId||a.refresh())}var tt={};M(tt,{on:()=>re,render:()=>oe});var yt=[["working","Working shown clearly"],["accuracy","Accurate answers"],["method","Right choice of method"],["concepts","Grasps the core concepts"]];function xt(e,t){return e.data.state.students.find(s=>s.id===t)}function ae(e,t,s){let n=e.data.syllabus.points.filter(o=>o.module===s),a=e.data.state.progress[t.id]||{};return i`<form class="modal-body" data-form="demo" onsubmit="return false">
     <h2>Demo check: ${t.name}, Module ${s}</h2>
     <p class="muted" style="margin:4px 0 12px">Scenario A, step 4. The student did the Demo without recordings, answers or notes. Tick what you saw. The decision is yours.</p>
     ${yt.map(([o,d])=>i`<label class="check"><input type="checkbox" name="${o}"><span>${d}</span></label>`)}
@@ -785,7 +785,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
   <div class="modal-foot">
     <button class="btn" data-action="close">Cancel</button>
     <button class="btn btn-primary" data-action="save-demo" data-student="${t.id}" data-module="${s}">Save decision</button>
-  </div>`}function ae(e,t,s){return s.sacs.length?i`${s.sacs.map(n=>i`<div class="section-title">Scenario B · ${n.sac.title} · ${y(n.sac.date)} (${n.daysLeft} days)</div>
+  </div>`}function ne(e,t,s){return s.sacs.length?i`${s.sacs.map(n=>i`<div class="section-title">Scenario B · ${n.sac.title} · ${y(n.sac.date)} (${n.daysLeft} days)</div>
     <table>
       <thead><tr><th>Module</th><th>Module Test</th><th class="num">Mastered</th><th>Status</th></tr></thead>
       <tbody>${n.modules.map(a=>i`<tr>
@@ -796,7 +796,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       </tr>`)}</tbody>
     </table>
     <ul class="list" style="margin-top:6px">${n.plan.map(a=>i`<li>${a}</li>`)}</ul>
-    <div class="row" style="margin-top:6px"><button class="btn btn-xs" data-action="sac-answer" data-student="${t.id}">Practice SAC marked (+1)</button><span class="faint" style="font-size:12px">Source: ${n.sac.source}; materials: ${n.sac.materials}</span></div>`)}`:""}function ne(e,t){let s=xt(e,t.studentId),n=t.card,a=e.data.state.qaQueue.filter(r=>r.studentId===s.id&&r.status!=="done"),o=n.demoRequests.length>0,d=e.data.state.markingRecords.filter(r=>r.studentId===s.id&&r.source==="shiftmate").slice(-1)[0];return i`<article class="card">
+    <div class="row" style="margin-top:6px"><button class="btn btn-xs" data-action="sac-answer" data-student="${t.id}">Practice SAC marked (+1)</button><span class="faint" style="font-size:12px">Source: ${n.sac.source}; materials: ${n.sac.materials}</span></div>`)}`:""}function ie(e,t){let s=xt(e,t.studentId),n=t.card,a=e.data.state.qaQueue.filter(r=>r.studentId===s.id&&r.status!=="done"),o=n.demoRequests.length>0,d=e.data.state.markingRecords.filter(r=>r.studentId===s.id&&r.source==="shiftmate").slice(-1)[0];return i`<article class="card">
     <div class="card-head">
       <div>
         <h2>${s.name}</h2>
@@ -813,7 +813,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <span class="muted" style="font-size:12.5px">${n.currentModule.masteredPct}% of Module ${n.currentModule.id} mastered</span>
     </div>
 
-    ${ae(e,s,n)}
+    ${ne(e,s,n)}
 
     ${d?i`<div class="section-title">Scenario C · review ${d.testName} (${d.pct}%)</div>
       <ul class="list">${d.issues.map(r=>i`<li><strong>${r.label}</strong>: ${r.detail}</li>`)}</ul>
@@ -828,7 +828,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <input type="number" min="1" max="20" value="1" style="width:70px" aria-label="Number of questions" data-qa-count="${s.id}">
       <button class="btn btn-xs" data-action="qa-log" data-student="${s.id}">Log Q&A questions</button>
     </div>
-  </article>`}function ie(e){let{briefing:t}=e.data.views,s=t.lessons.filter(a=>a.status!=="leave"),n=t.lessons.filter(a=>a.status==="leave");return i`
+  </article>`}function oe(e){let{briefing:t}=e.data.views,s=t.lessons.filter(a=>a.status!=="leave"),n=t.lessons.filter(a=>a.status==="leave");return i`
     <div class="page-head">
       <div>
         <div class="kicker">16:00-18:00 · Phase 4 · Step 9</div>
@@ -840,7 +840,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       </div>
     </div>
     ${n.length?i`<div class="callout tone-info" style="margin-bottom:14px">On leave today: ${n.map(a=>a.card.student.name).join(", ")} (teacher told).</div>`:""}
-    <div class="cards">${s.map(a=>ne(e,a))}</div>`}async function oe(e,t,s,n,a){if(e==="click"){if(t==="checkin")await a.run(()=>a.api.post(`/api/timetable/${s.dataset.id}/checkin`),"Checked in")&&a.refresh();else if(t==="simulate")await a.run(()=>a.api.post("/api/demo/simulate"),"Played 16:00-18:00: check-ins and Q&A logged")&&a.refresh();else if(t==="sac-answer")await a.run(()=>a.api.post("/api/sac-answer",{studentId:s.dataset.student,kind:"Practice SAC"}),"Practice SAC recorded")&&a.refresh();else if(t==="qa-done")await a.run(()=>a.api.post("/api/qa/log",{studentId:s.dataset.student,count:1,qaId:s.dataset.id,topic:s.dataset.topic}),"Q&A logged")&&a.refresh();else if(t==="qa-log"){let o=document.querySelector(`[data-qa-count="${s.dataset.student}"]`),d=Number(o&&o.value)||1;await a.run(()=>a.api.post("/api/qa/log",{studentId:s.dataset.student,count:d}),`${d} Q&A question(s) logged`)&&a.refresh()}else if(t==="demo"){let o=xt(a,s.dataset.student),d=Number(s.dataset.module);a.openModal(se(a,o,d),{"save-demo":async(r,c)=>{let u=c.querySelector("form"),g=new FormData(u),S=Object.fromEntries(yt.map(([v])=>[v,g.get(v)==="on"])),f={studentId:o.id,module:d,checks:S,outcome:g.get("outcome"),points:g.getAll("pt"),note:g.get("note")||""};if(!f.outcome){a.toast('Choose "Meets the standard" or "Not yet"',"bad");return}await a.run(()=>a.api.post("/api/demo-review",f),f.outcome==="meets"?`Module ${d} Test booked for ${o.name}`:"Recorded: re-watch list added to Q&A")&&(a.closeModal(),a.refresh())}})}}}var et={};M(et,{on:()=>de,render:()=>re});var N="en",wt={high:"bad",medium:"warn",low:"info"};function re(e){let t=e.data.views.report,s=t.counts,n=(o,d,r)=>i`<div class="card stat"><div class="num">${o}</div><div class="lbl">${d}</div>${r?i`<div class="faint" style="font-size:11.5px">${r}</div>`:""}</div>`,a=t.signedOff;return i`
+    <div class="cards">${s.map(a=>ie(e,a))}</div>`}async function re(e,t,s,n,a){if(e==="click"){if(t==="checkin")await a.run(()=>a.api.post(`/api/timetable/${s.dataset.id}/checkin`),"Checked in")&&a.refresh();else if(t==="simulate")await a.run(()=>a.api.post("/api/demo/simulate"),"Played 16:00-18:00: check-ins and Q&A logged")&&a.refresh();else if(t==="sac-answer")await a.run(()=>a.api.post("/api/sac-answer",{studentId:s.dataset.student,kind:"Practice SAC"}),"Practice SAC recorded")&&a.refresh();else if(t==="qa-done")await a.run(()=>a.api.post("/api/qa/log",{studentId:s.dataset.student,count:1,qaId:s.dataset.id,topic:s.dataset.topic}),"Q&A logged")&&a.refresh();else if(t==="qa-log"){let o=document.querySelector(`[data-qa-count="${s.dataset.student}"]`),d=Number(o&&o.value)||1;await a.run(()=>a.api.post("/api/qa/log",{studentId:s.dataset.student,count:d}),`${d} Q&A question(s) logged`)&&a.refresh()}else if(t==="demo"){let o=xt(a,s.dataset.student),d=Number(s.dataset.module);a.openModal(ae(a,o,d),{"save-demo":async(r,c)=>{let u=c.querySelector("form"),g=new FormData(u),S=Object.fromEntries(yt.map(([v])=>[v,g.get(v)==="on"])),f={studentId:o.id,module:d,checks:S,outcome:g.get("outcome"),points:g.getAll("pt"),note:g.get("note")||""};if(!f.outcome){a.toast('Choose "Meets the standard" or "Not yet"',"bad");return}await a.run(()=>a.api.post("/api/demo-review",f),f.outcome==="meets"?`Module ${d} Test booked for ${o.name}`:"Recorded: re-watch list added to Q&A")&&(a.closeModal(),a.refresh())}})}}}var et={};M(et,{on:()=>le,render:()=>de});var N="en",wt={high:"bad",medium:"warn",low:"info"};function de(e){let t=e.data.views.report,s=t.counts,n=(o,d,r)=>i`<div class="card stat"><div class="num">${o}</div><div class="lbl">${d}</div>${r?i`<div class="faint" style="font-size:11.5px">${r}</div>`:""}</div>`,a=t.signedOff;return i`
     <div class="page-head">
       <div>
         <div class="kicker">18:20-18:30 · Phase 5</div>
@@ -880,13 +880,13 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
                <button class="btn btn-primary" data-action="sign">Manager sign-off</button>`}
         </div>
       </section>
-    </div>`}async function de(e,t,s,n,a){if(e==="click"){if(t==="lang")N=s.dataset.lang,a.refresh();else if(t==="copy"){let o=document.getElementById("report-text").textContent;a.toast(await a.copy(o)?"Report copied":"Select the text and copy it")}else if(t==="sign"){let o=document.getElementById("manager").value;await a.run(()=>a.api.post("/api/report/signoff",{manager:o}),`Signed off by ${o}`)&&a.refresh()}}}var st={};M(st,{mount:()=>ve,on:()=>be,render:()=>ge});var k={id:null,profile:null,version:null};function le(){return i`<div class="legend">
+    </div>`}async function le(e,t,s,n,a){if(e==="click"){if(t==="lang")N=s.dataset.lang,a.refresh();else if(t==="copy"){let o=document.getElementById("report-text").textContent;a.toast(await a.copy(o)?"Report copied":"Select the text and copy it")}else if(t==="sign"){let o=document.getElementById("manager").value;await a.run(()=>a.api.post("/api/report/signoff",{manager:o}),`Signed off by ${o}`)&&a.refresh()}}}var st={};M(st,{mount:()=>fe,on:()=>$e,render:()=>ve});var k={id:null,profile:null,version:null};function ce(){return i`<div class="legend">
     <span><i class="m-mastered"></i>Completely mastered</span>
     <span><i class="m-partial"></i>Partially mastered</span>
     <span><i class="m-not_understood"></i>Not understood</span>
     <span><i class="m-not_covered"></i>Not yet covered</span>
     <span><i style="outline:2px solid var(--focus);outline-offset:-2px"></i>Updated today</span>
-  </div>`}function ce(e,t){let s=e.summary;return i`<section class="card">
+  </div>`}function ue(e,t){let s=e.summary;return i`<section class="card">
     <div class="card-head">
       <div><h2><span class="exhibit-tag">Exhibit 2</span> Progress Sheet: ${e.student.name}</h2>
       <div class="card-sub">Mathematical Methods Units 3&4 · currently Module ${e.student.currentModule}</div></div>
@@ -904,8 +904,8 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
         <div class="heat-cells">${n.points.map(a=>i`<span class="heat-cell m-${a.mastery}" title="${a.id} ${a.title}: ${D[a.mastery]}" style="${t.has(a.id)?"outline:2px solid var(--focus);outline-offset:1px":""}">${a.id}</span>`)}</div>
       </div>`)}
     </div>
-    <div style="margin-top:12px">${le()}</div>
-  </section>`}function ue(e,t){let s=e.data.views.examTable,n=["A","B","C","D"];return i`<section class="card">
+    <div style="margin-top:12px">${ce()}</div>
+  </section>`}function pe(e,t){let s=e.data.views.examTable,n=["A","B","C","D"];return i`<section class="card">
     <div class="card-head"><h2><span class="exhibit-tag">Exhibit 3</span> Student Exam Statistics</h2>
       <div class="legend"><span><i class="b-pass"></i>Pass 75-100%</span><span><i class="b-mid"></i>Mid 40-75%</span><span><i class="b-low"></i>Low 0-40%</span><span>*P tutor pass</span></div>
     </div>
@@ -925,7 +925,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
         </tbody>
       </table>
     </div>
-  </section>`}function pe(e){return e.markingRecords.length?i`<section class="card">
+  </section>`}function he(e){return e.markingRecords.length?i`<section class="card">
     <div class="card-head"><h2><span class="exhibit-tag">Exhibit 1</span> Marking Sheets</h2><span class="card-sub">DONE = correct · W = wrong · C = careless · \\Blank\\ = not attempted</span></div>
     ${e.markingRecords.map((t,s)=>i`<details ${s===0?i`open`:""} style="margin-bottom:8px">
       <summary>${t.testName} · ${y(t.date)} · ${P(t.band||(t.pct>=75?"pass":t.pct>=40?"mid":"low"),`${t.pct}%`)} ${t.source==="shiftmate"?i`<span class="chip tone-info">via ShiftMate</span>`:""}</summary>
@@ -940,7 +940,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       </div>
       ${t.decision?i`<p class="card-sub" style="margin-top:6px">Tutor decision: ${t.decision.label}${t.decision.tutorPass?" (tutor pass *P)":""}</p>`:""}
     </details>`)}
-  </section>`:""}function he(e){if(e.length<2)return"";let t=560,s=190,n={l:36,r:40,t:14,b:34},a=t-n.l-n.r,o=s-n.t-n.b,d=p=>n.l+a*p/(e.length-1),r=p=>n.t+o-o*p/100,c=Math.max(60,...e.map(p=>p.firstPassMin||0)),u=p=>n.t+o-o*p/c,g=e.map((p,v)=>`${v?"L":"M"}${d(v)},${r(p.pct)}`).join(" "),S=e.filter(p=>p.firstPassMin!==null),f=e.map((p,v)=>p.firstPassMin===null?"":`${v&&S.indexOf(p)?"L":"M"}${d(v)},${u(p.firstPassMin)}`).join(" ");return i`<svg class="chart" viewBox="0 0 ${t} ${s}" role="img" aria-label="Score and first-pass time over time">
+  </section>`:""}function me(e){if(e.length<2)return"";let t=560,s=190,n={l:36,r:40,t:14,b:34},a=t-n.l-n.r,o=s-n.t-n.b,d=p=>n.l+a*p/(e.length-1),r=p=>n.t+o-o*p/100,c=Math.max(60,...e.map(p=>p.firstPassMin||0)),u=p=>n.t+o-o*p/c,g=e.map((p,v)=>`${v?"L":"M"}${d(v)},${r(p.pct)}`).join(" "),S=e.filter(p=>p.firstPassMin!==null),f=e.map((p,v)=>p.firstPassMin===null?"":`${v&&S.indexOf(p)?"L":"M"}${d(v)},${u(p.firstPassMin)}`).join(" ");return i`<svg class="chart" viewBox="0 0 ${t} ${s}" role="img" aria-label="Score and first-pass time over time">
     ${[0,25,50,75,100].map(p=>i`<line class="grid-line" x1="${n.l}" x2="${t-n.r}" y1="${r(p)}" y2="${r(p)}"></line><text x="${n.l-6}" y="${r(p)+4}" text-anchor="end">${p}%</text>`)}
     <text x="${t-n.r+6}" y="${n.t+4}">${c}m</text>
     <text x="${t-n.r+6}" y="${n.t+o+4}">0m</text>
@@ -950,9 +950,9 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       ${p.firstPassMin!==null?i`<circle class="pt-time" cx="${d(v)}" cy="${u(p.firstPassMin)}" r="3.5"><title>${p.paper}: first pass ${p.firstPassMin} min</title></circle>`:""}
       <text x="${d(v)}" y="${s-12}" text-anchor="middle">${y(p.date)}</text>`)}
   </svg>
-  <div class="legend"><span><i style="background:var(--brand)"></i>Score %</span><span><i style="background:var(--accent)"></i>First pass, minutes</span></div>`}function me(e){return e.examLog.length?i`<section class="card">
+  <div class="legend"><span><i style="background:var(--brand)"></i>Score %</span><span><i style="background:var(--accent)"></i>First pass, minutes</span></div>`}function ge(e){return e.examLog.length?i`<section class="card">
     <div class="card-head"><h2><span class="exhibit-tag">Log</span> Exam log (Scenario C, step 5)</h2><span class="card-sub">Score and time, so the student sees the trend</span></div>
-    ${he(e.examLog)}
+    ${me(e.examLog)}
     <div class="table-wrap" style="margin-top:10px">
       <table>
         <thead><tr><th>Date</th><th>Paper</th><th>Start</th><th>1st pass</th><th>2nd pass</th><th class="num">Checks</th><th class="num">Score</th></tr></thead>
@@ -964,13 +964,13 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       </table>
     </div>
   </section>`:""}function kt(e,t){let s=e.data.state.today,n=new Set;return t.markingRecords.filter(a=>a.date===s&&a.source==="shiftmate").forEach(a=>a.rows.forEach(o=>n.add(o.point))),i`
-    ${ce(t,n)}
+    ${ue(t,n)}
     <div style="height:14px"></div>
-    ${ue(e,t.student.id)}
+    ${pe(e,t.student.id)}
     <div class="grid grid-2" style="margin-top:14px;align-items:start">
-      <div>${pe(t)}</div>
-      <div>${me(t)}</div>
-    </div>`}function ge(e,t){let s=e.data.state.students,n=t[0]&&s.some(o=>o.id===t[0])?t[0]:s[0].id,a=k.id===n&&k.version===e.data;return i`
+      <div>${he(t)}</div>
+      <div>${ge(t)}</div>
+    </div>`}function ve(e,t){let s=e.data.state.students,n=t[0]&&s.some(o=>o.id===t[0])?t[0]:s[0].id,a=k.id===n&&k.version===e.data;return i`
     <div class="page-head">
       <div>
         <div class="kicker">Exhibits 1-3 · records the tutor maintains</div>
@@ -986,7 +986,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
     <nav class="student-tabs" aria-label="Students">
       ${s.map(o=>i`<a href="#/records/${o.id}" class="${o.id===n?"active":""}">${o.name}</a>`)}
     </nav>
-    <div id="rec-body" data-id="${n}">${a?kt(e,k.profile):i`<div class="row"><span class="spinner"></span><span class="muted">Loading records...</span></div>`}</div>`}async function ve(e,t,s){let a=document.getElementById("rec-body").dataset.id;if(!(k.id===a&&k.version===t.data))try{let o=await t.api.get(`/api/students/${a}`);k.id=a,k.profile=o,k.version=t.data;let d=document.getElementById("rec-body");d&&d.dataset.id===a&&(d.innerHTML=String(kt(t,o)))}catch(o){t.toast(o.message,"bad")}}function fe(e,t){let s=new Blob([`\uFEFF${t}`],{type:"text/csv;charset=utf-8"}),n=document.createElement("a");n.href=URL.createObjectURL(s),n.download=e,document.body.appendChild(n),n.click(),setTimeout(()=>{URL.revokeObjectURL(n.href),n.remove()},1e3)}async function be(e,t,s,n,a){if(e!=="click"||t!=="export")return;let o=`/api/export/${s.dataset.sheet}.csv`;if(!window.SHIFTMATE_LOCAL_API){window.location.href=o;return}let d=await window.SHIFTMATE_LOCAL_API("GET",o);a.openModal(i`<div class="modal-body">
+    <div id="rec-body" data-id="${n}">${a?kt(e,k.profile):i`<div class="row"><span class="spinner"></span><span class="muted">Loading records...</span></div>`}</div>`}async function fe(e,t,s){let a=document.getElementById("rec-body").dataset.id;if(!(k.id===a&&k.version===t.data))try{let o=await t.api.get(`/api/students/${a}`);k.id=a,k.profile=o,k.version=t.data;let d=document.getElementById("rec-body");d&&d.dataset.id===a&&(d.innerHTML=String(kt(t,o)))}catch(o){t.toast(o.message,"bad")}}function be(e,t){let s=new Blob([`\uFEFF${t}`],{type:"text/csv;charset=utf-8"}),n=document.createElement("a");n.href=URL.createObjectURL(s),n.download=e,document.body.appendChild(n),n.click(),setTimeout(()=>{URL.revokeObjectURL(n.href),n.remove()},1e3)}async function $e(e,t,s,n,a){if(e!=="click"||t!=="export")return;let o=`/api/export/${s.dataset.sheet}.csv`;if(!window.SHIFTMATE_LOCAL_API){window.location.href=o;return}let d=await window.SHIFTMATE_LOCAL_API("GET",o);a.openModal(i`<div class="modal-body">
       <h2>${d.filename}</h2>
       <p class="muted" style="margin:4px 0 10px">Copy and paste into the matching tab of the centre's Google Sheet.</p>
       <textarea id="csv-text" rows="12" class="mono" readonly>${d.csv}</textarea>
@@ -995,7 +995,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       <button class="btn" data-action="close">Close</button>
       ${window.location.protocol==="file:"?i`<button class="btn" data-action="download">Download</button>`:""}
       <button class="btn btn-primary" data-action="copy-csv">Copy</button>
-    </div>`,{"copy-csv":async(r,c)=>{let u=c.querySelector("#csv-text"),g=await a.copy(d.csv);g||u.select(),a.toast(g?"CSV copied":"Press Ctrl+C to copy the selected text")},download:()=>fe(d.filename,d.csv)})}var ot={};M(ot,{on:()=>ke,render:()=>we});var z=[{id:"brief",step:"2-4",task:"Review timetable, changes and each expected student's records",unit:"students",vol:7,manual:1.5,withSm:.5,how:"Prep cards built from Exhibits 2-3"},{id:"notify",step:"3",task:"Pass attendance changes on to teachers",unit:"changes",vol:2,manual:2,withSm:.5,how:"Teacher notice created when the reply is approved"},{id:"wechat",step:"6-7",task:"Read, look up the records and reply on WeChat",unit:"messages",vol:12,manual:2.5,withSm:1,how:"Classified, facts pulled, draft in the sender's language"},{id:"records",step:"8",task:"Enter one marked test into the three sheets",unit:"papers",vol:5,manual:6,withSm:1.5,how:"Mark once: Exhibits 1-3 and the exam log together"},{id:"review",step:"9C",task:"Prepare an exam review (gaps, careless, time)",unit:"exams",vol:2,manual:6,withSm:2,how:"W / C / blank and timing diagnosis ready"},{id:"sac",step:"9B",task:"Check a SAC scope against the progress sheet",unit:"students",vol:2,manual:5,withSm:1,how:"SAC readiness per Module"},{id:"report",step:"5",task:"Compile the daily report",unit:"report",vol:1,manual:10,withSm:2,how:"Counted from the day's activity"}],St=300,nt=5,H={input:4,output:20},j={input:2e3,output:800},O=Object.fromEntries(z.map(e=>[e.id,{vol:e.vol,manual:e.manual,withSm:e.withSm}]));function it(){let e=0,t=0;return z.forEach(s=>{let n=O[s.id];e+=n.vol*n.manual,t+=n.vol*n.withSm}),{manual:e,withSm:t,saved:e-t}}function at(e){return`$${e<1?e.toFixed(3):e.toFixed(2)}`}function Mt(){let e=it();return i`<table class="impact-table">
+    </div>`,{"copy-csv":async(r,c)=>{let u=c.querySelector("#csv-text"),g=await a.copy(d.csv);g||u.select(),a.toast(g?"CSV copied":"Press Ctrl+C to copy the selected text")},download:()=>be(d.filename,d.csv)})}var ot={};M(ot,{on:()=>Se,render:()=>ke});var z=[{id:"brief",step:"2-4",task:"Review timetable, changes and each expected student's records",unit:"students",vol:7,manual:1.5,withSm:.5,how:"Prep cards built from Exhibits 2-3"},{id:"notify",step:"3",task:"Pass attendance changes on to teachers",unit:"changes",vol:2,manual:2,withSm:.5,how:"Teacher notice created when the reply is approved"},{id:"wechat",step:"6-7",task:"Read, look up the records and reply on WeChat",unit:"messages",vol:12,manual:2.5,withSm:1,how:"Classified, facts pulled, draft in the sender's language"},{id:"records",step:"8",task:"Enter one marked test into the three sheets",unit:"papers",vol:5,manual:6,withSm:1.5,how:"Mark once: Exhibits 1-3 and the exam log together"},{id:"review",step:"9C",task:"Prepare an exam review (gaps, careless, time)",unit:"exams",vol:2,manual:6,withSm:2,how:"W / C / blank and timing diagnosis ready"},{id:"sac",step:"9B",task:"Check a SAC scope against the progress sheet",unit:"students",vol:2,manual:5,withSm:1,how:"SAC readiness per Module"},{id:"report",step:"5",task:"Compile the daily report",unit:"report",vol:1,manual:10,withSm:2,how:"Counted from the day's activity"}],St=300,nt=5,H={input:4,output:20},j={input:2e3,output:800},O=Object.fromEntries(z.map(e=>[e.id,{vol:e.vol,manual:e.manual,withSm:e.withSm}]));function it(){let e=0,t=0;return z.forEach(s=>{let n=O[s.id];e+=n.vol*n.manual,t+=n.vol*n.withSm}),{manual:e,withSm:t,saved:e-t}}function at(e){return`$${e<1?e.toFixed(3):e.toFixed(2)}`}function Ct(){let e=it();return i`<table class="impact-table">
     <thead><tr><th>Step</th><th>Task</th><th class="num">Per shift</th><th class="num">By hand (min each)</th><th class="num">With ShiftMate</th><th class="num">Saved</th></tr></thead>
     <tbody>${z.map(t=>{let s=O[t.id];return i`<tr>
         <td class="mono">${t.step}</td>
@@ -1007,7 +1007,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       </tr>`})}
       <tr><td></td><td><strong>Total per shift</strong></td><td></td><td class="num"><strong>${Math.round(e.manual)}</strong> min</td><td class="num"><strong>${Math.round(e.withSm)}</strong> min</td><td class="num"><strong>${Math.round(e.saved)}</strong> min</td></tr>
     </tbody>
-  </table>`}function Ct(){let e=it(),t=e.saved/St*100,s=e.manual/St*100;return i`<div class="row" style="gap:24px;align-items:flex-end">
+  </table>`}function Et(){let e=it(),t=e.saved/St*100,s=e.manual/St*100;return i`<div class="row" style="gap:24px;align-items:flex-end">
     <div><div class="big-number">${Math.round(e.saved)} min</div><div class="muted">returned per 14:00-19:00 shift</div></div>
     <div><div class="big-number">${Math.round(t)}%</div><div class="muted">of the shift</div></div>
     <div><div class="big-number">${(e.saved*nt/60).toFixed(1)} h</div><div class="muted">per week (${nt} shifts)</div></div>
@@ -1016,7 +1016,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
     <span class="m-not_understood" style="width:${Math.min(100,s-t)}%" title="Admin time that remains"></span>
     <span class="m-mastered" style="width:${Math.min(100,t)}%" title="Time returned to tutoring"></span>
   </div>
-  <div class="legend" style="margin-top:6px"><span><i class="m-not_understood"></i>Admin left (${Math.round(e.withSm)} min)</span><span><i class="m-mastered"></i>Returned to on-site Q&A (${Math.round(e.saved)} min)</span><span><i class="b-none"></i>Rest of the 300-minute shift</span></div>`}function $e(e){let t=e.data.state.aiUsage||{calls:0,input:0,output:0},s=(t.input*H.input+t.output*H.output)/1e6,n=(j.input*H.input+j.output*H.output)/1e6,a=n*O.wechat.vol*nt*4.33;return i`<section class="card">
+  <div class="legend" style="margin-top:6px"><span><i class="m-not_understood"></i>Admin left (${Math.round(e.withSm)} min)</span><span><i class="m-mastered"></i>Returned to on-site Q&A (${Math.round(e.saved)} min)</span><span><i class="b-none"></i>Rest of the 300-minute shift</span></div>`}function ye(e){let t=e.data.state.aiUsage||{calls:0,input:0,output:0},s=(t.input*H.input+t.output*H.output)/1e6,n=(j.input*H.input+j.output*H.output)/1e6,a=n*O.wechat.vol*nt*4.33;return i`<section class="card">
     <h2>Running cost</h2>
     <table style="margin-top:8px">
       <tbody>
@@ -1028,17 +1028,17 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       </tbody>
     </table>
     <p class="card-sub" style="margin-top:8px">Offline rules mode costs nothing and is the fallback when the API is down.</p>
-  </section>`}var ye=[["Marks for each question","Nothing: it only records what the tutor marked","Marks the paper"],["Why a question was left blank","Suggests (blank at the end usually means time)","Confirms before anything is saved"],["Mastery colours (Exhibit 2)","Applies one fixed rule: W is a gap, C is not","Reviews the before/after list, then applies"],["Move on, Retest, redo the Demo","Suggests, with its reasons","Decides; can pass on judgement (*P)"],["Passing a Demo","Shows the four-point checklist","Decides; only then is the test booked"],["Messages to students and parents","Drafts in their language from the records","Edits, approves and sends from Work WeChat"],["Leave, online switch, bookings","Proposes the changes","Ticks which ones to apply"],["Fees, invoices, complaints","Routes to the front desk","Not the tutor's call"]];function xe(e){let t=e.data.state.audit.slice().reverse(),s=t.length,n=t.filter(a=>a.overridden).length;return i`<section class="card">
-    <div class="card-head"><h2>Audit trail: suggestion vs decision</h2><span class="card-sub">${s?`${n} of ${s} changed by the tutor`:"Fills as you work"}</span></div>
-    ${s?i`<div class="table-wrap"><table>
+  </section>`}var xe=[["Marks for each question","Nothing: it only records what the tutor marked","Marks the paper"],["Why a question was left blank","Suggests (blank at the end usually means time)","Confirms before anything is saved"],["Mastery colours (Exhibit 2)","Applies one fixed rule: W is a gap, C is not","Reviews the before/after list, then applies"],["Move on, Retest, redo the Demo","Suggests, with its reasons","Decides; can pass on judgement (*P)"],["Passing a Demo","Shows the four-point checklist","Decides; only then is the test booked"],["Messages to students and parents","Drafts in their language from the records","Edits, approves and sends from Work WeChat"],["Leave, online switch, bookings","Proposes the changes","Ticks which ones to apply"],["Fees, invoices, complaints","Routes to the front desk","Not the tutor's call"]];function Mt(e,t){let s=e.data.constants;return s.nextSteps[t]||s.intentLabels[t]||{meets:"Meets standard",not_yet:"Not yet"}[t]||t}function we(e){let t=e.data.state.audit.slice().reverse(),s=o=>(e.data.state.students.find(d=>d.id===o)||{}).name||"",n=t.length,a=t.filter(o=>o.overridden).length;return i`<section class="card">
+    <div class="card-head"><h2>Audit trail: suggestion vs decision</h2><span class="card-sub">${n?`${a} of ${n} changed by the tutor`:"Fills as you work"}</span></div>
+    ${n?i`<div class="table-wrap"><table>
       <thead><tr><th>Time</th><th>Area</th><th>About</th><th>Suggested</th><th>Decided</th><th>Tutor changed it?</th></tr></thead>
-      <tbody>${t.map(a=>i`<tr>
-        <td class="mono">${$(a.at)}</td><td>${a.feature}${a.mode?i` <span class="faint">(${a.mode})</span>`:""}</td><td>${a.subject}</td>
-        <td>${a.suggested}</td><td>${a.decided}</td>
-        <td>${a.overridden?i`<span class="chip tone-warn">Yes</span>`:i`<span class="chip">No</span>`} <span class="faint" style="font-size:12px">${a.detail}</span></td>
+      <tbody>${t.map(o=>i`<tr>
+        <td class="mono">${$(o.at)}</td><td>${o.feature}${o.mode?i` <span class="faint">(${o.mode})</span>`:""}</td><td>${s(o.studentId)} · ${o.subject}</td>
+        <td>${Mt(e,o.suggested)}</td><td>${Mt(e,o.decided)}</td>
+        <td>${o.overridden?i`<span class="chip tone-warn">Yes</span>`:i`<span class="chip">No</span>`} <span class="faint" style="font-size:12px">${o.detail}</span></td>
       </tr>`)}</tbody>
     </table></div>`:i`<p class="muted">Approve a reply or mark a paper to see entries. The override rate is the pilot's quality measure.</p>`}
-  </section>`}function we(e){return i`
+  </section>`}function ke(e){return i`
     <div class="page-head">
       <div>
         <div class="kicker">Impact, feasibility and responsible AI</div>
@@ -1049,8 +1049,8 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
 
     <section class="card">
       <div class="card-head"><h2>Time returned to students</h2><span class="card-sub">Edit any number: the totals update</span></div>
-      <div id="impact-head">${Ct()}</div>
-      <div class="table-wrap" style="margin-top:16px" id="impact-table">${Mt()}</div>
+      <div id="impact-head">${Et()}</div>
+      <div class="table-wrap" style="margin-top:16px" id="impact-table">${Ct()}</div>
       <p class="card-sub" style="margin-top:8px">Basis: volumes match today's demo data (7 lessons, 9 messages by 14:30, 4 papers waiting); minutes per task are our estimates for a typical weekday, deliberately conservative. Marking the paper itself is unchanged and not counted. Week 1 of the pilot replaces these estimates with timed measurements.</p>
     </section>
 
@@ -1064,14 +1064,14 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
           <li><strong>Manager:</strong> consistent daily figures and a follow-up list; an audit trail of every AI suggestion.</li>
         </ul>
       </section>
-      ${$e(e)}
+      ${ye(e)}
     </div>
 
     <section class="card" style="margin-top:14px">
       <h2>Who decides</h2>
       <div class="table-wrap" style="margin-top:8px"><table>
         <thead><tr><th>Decision</th><th>ShiftMate</th><th>Tutor</th></tr></thead>
-        <tbody>${ye.map(t=>i`<tr><td><strong>${t[0]}</strong></td><td>${t[1]}</td><td>${t[2]}</td></tr>`)}</tbody>
+        <tbody>${xe.map(t=>i`<tr><td><strong>${t[0]}</strong></td><td>${t[1]}</td><td>${t[2]}</td></tr>`)}</tbody>
       </table></div>
     </section>
 
@@ -1114,7 +1114,7 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
       </div>
     </section>
 
-    <div style="margin-top:14px">${xe(e)}</div>`}function ke(e,t,s){if(e!=="input"||t!=="val")return;let n=Number(s.value);if(!Number.isFinite(n)||n<0)return;O[s.dataset.id][s.dataset.k]=n,document.getElementById("impact-head").innerHTML=String(Ct());let a=document.getElementById("impact-table"),o=document.createElement("div");o.innerHTML=String(Mt());let d=a.querySelectorAll("tbody tr");o.querySelectorAll("tbody tr").forEach((r,c)=>{let u=r.lastElementChild;d[c]&&(d[c].lastElementChild.innerHTML=u.innerHTML),c===z.length&&(d[c].innerHTML=r.innerHTML)})}var dt={briefing:U,inbox:V,marking:X,onsite:tt,report:et,records:st,impact:ot},Se=[{group:"Your shift",items:[{id:"briefing",time:"14:15",label:"Briefing",sub:"Steps 2-5: who, what, changes"},{id:"inbox",time:"14:30",label:"WeChat inbox",sub:"Steps 6-7: triage and draft",badge:e=>e.state.inbox.filter(t=>t.status!=="sent").length},{id:"marking",time:"15:00",label:"Mark once",sub:"Step 8: one entry, three sheets",badge:e=>e.state.pendingPapers.length},{id:"onsite",time:"16:00",label:"On site",sub:"Step 9: Q&A, Demo, SAC, exams"},{id:"report",time:"18:20",label:"Daily report",sub:"Phase 5: manager sign-off"}]},{group:"Records and case",items:[{id:"records",time:"Ex 1-3",label:"Student records",sub:"Marking, progress, exam stats"},{id:"impact",time:"Why",label:"Impact and safety",sub:"Time saved, who decides"}]}];async function Et(e,t,s){if(window.SHIFTMATE_LOCAL_API){let o=await window.SHIFTMATE_LOCAL_API(e,t,s);if(o.status!==200)throw new Error(o.body&&o.body.error||`Request failed (${o.status})`);return o.body}let n=await fetch(t,{method:e,headers:s?{"Content-Type":"application/json"}:{},body:s?JSON.stringify(s):void 0}),a=await n.json().catch(()=>({}));if(!n.ok)throw new Error(a.error||`Request failed (${n.status})`);return a}var R=document.getElementById("main"),Me=document.getElementById("nav"),b=document.getElementById("modal"),h={data:null,route:{page:"briefing",params:[]},api:{get:e=>Et("GET",e),post:(e,t)=>Et("POST",e,t||{})},async refresh({keepScroll:e=!0}={}){let t=window.scrollY;this.data=await this.api.get("/api/state"),At(),rt(),e&&window.scrollTo(0,t)},navigate(e){location.hash===e?rt():location.hash=e},toast(e,t=""){let s=document.createElement("div");s.className=`toast ${t}`,s.textContent=e,document.getElementById("toasts").appendChild(s),setTimeout(()=>s.remove(),t==="bad"?6e3:3800)},async run(e,t){try{let s=await e();return t&&this.toast(t),s}catch(s){return this.toast(s.message,"bad"),null}},openModal(e,t={}){b.innerHTML=String(e),b.handlers=t,b.showModal()},closeModal(){b.close(),b.innerHTML="",b.handlers=null},async copy(e){try{return await navigator.clipboard.writeText(e),!0}catch{return!1}}};window.shiftmate=h;function Pt(){let e=location.hash.replace(/^#\/?/,"").split("/").filter(Boolean).map(decodeURIComponent);return{page:dt[e[0]]?e[0]:"briefing",params:e.slice(1)}}function At(){let e=h.data,t=document.getElementById("ai-pill");e.ai.enabled?(t.className="pill tone-ok",t.textContent=`Claude drafts: ${e.ai.model}`,t.title="WeChat replies are drafted by Claude with names masked. Records use rules only."):(t.className="pill tone-warn",t.textContent="Offline rules mode",t.title=`${e.ai.reason}. Drafts come from the built-in rules engine; nothing leaves this computer.`),document.getElementById("shift-label").textContent=`Learning Support Tutor \xB7 ${y(e.state.today)} \xB7 ${e.state.settings.shift.start}-${e.state.settings.shift.end}`,Me.innerHTML=String(i`${Se.map(s=>i`
+    <div style="margin-top:14px">${we(e)}</div>`}function Se(e,t,s){if(e!=="input"||t!=="val")return;let n=Number(s.value);if(!Number.isFinite(n)||n<0)return;O[s.dataset.id][s.dataset.k]=n,document.getElementById("impact-head").innerHTML=String(Et());let a=document.getElementById("impact-table"),o=document.createElement("div");o.innerHTML=String(Ct());let d=a.querySelectorAll("tbody tr");o.querySelectorAll("tbody tr").forEach((r,c)=>{let u=r.lastElementChild;d[c]&&(d[c].lastElementChild.innerHTML=u.innerHTML),c===z.length&&(d[c].innerHTML=r.innerHTML)})}var dt={briefing:U,inbox:V,marking:X,onsite:tt,report:et,records:st,impact:ot},Me=[{group:"Your shift",items:[{id:"briefing",time:"14:15",label:"Briefing",sub:"Steps 2-5: who, what, changes"},{id:"inbox",time:"14:30",label:"WeChat inbox",sub:"Steps 6-7: triage and draft",badge:e=>e.state.inbox.filter(t=>t.status!=="sent").length},{id:"marking",time:"15:00",label:"Mark once",sub:"Step 8: one entry, three sheets",badge:e=>e.state.pendingPapers.length},{id:"onsite",time:"16:00",label:"On site",sub:"Step 9: Q&A, Demo, SAC, exams"},{id:"report",time:"18:20",label:"Daily report",sub:"Phase 5: manager sign-off"}]},{group:"Records and case",items:[{id:"records",time:"Ex 1-3",label:"Student records",sub:"Marking, progress, exam stats"},{id:"impact",time:"Why",label:"Impact and safety",sub:"Time saved, who decides"}]}];async function Pt(e,t,s){if(window.SHIFTMATE_LOCAL_API){let o=await window.SHIFTMATE_LOCAL_API(e,t,s);if(o.status!==200)throw new Error(o.body&&o.body.error||`Request failed (${o.status})`);return o.body}let n=await fetch(t,{method:e,headers:s?{"Content-Type":"application/json"}:{},body:s?JSON.stringify(s):void 0}),a=await n.json().catch(()=>({}));if(!n.ok)throw new Error(a.error||`Request failed (${n.status})`);return a}var R=document.getElementById("main"),Ce=document.getElementById("nav"),b=document.getElementById("modal"),h={data:null,route:{page:"briefing",params:[]},api:{get:e=>Pt("GET",e),post:(e,t)=>Pt("POST",e,t||{})},async refresh({keepScroll:e=!0}={}){let t=window.scrollY;this.data=await this.api.get("/api/state"),It(),rt(),e&&window.scrollTo(0,t)},navigate(e){location.hash===e?rt():location.hash=e},toast(e,t=""){let s=document.createElement("div");s.className=`toast ${t}`,s.textContent=e,document.getElementById("toasts").appendChild(s),setTimeout(()=>s.remove(),t==="bad"?6e3:3800)},async run(e,t){try{let s=await e();return t&&this.toast(t),s}catch(s){return this.toast(s.message,"bad"),null}},openModal(e,t={}){b.innerHTML=String(e),b.handlers=t,b.showModal()},closeModal(){b.close(),b.innerHTML="",b.handlers=null},async copy(e){try{return await navigator.clipboard.writeText(e),!0}catch{return!1}}};window.shiftmate=h;function At(){let e=location.hash.replace(/^#\/?/,"").split("/").filter(Boolean).map(decodeURIComponent);return{page:dt[e[0]]?e[0]:"briefing",params:e.slice(1)}}function It(){let e=h.data,t=document.getElementById("ai-pill");e.ai.enabled?(t.className="pill tone-ok",t.textContent=`Claude drafts: ${e.ai.model}`,t.title="WeChat replies are drafted by Claude with names masked. Records use rules only."):(t.className="pill tone-warn",t.textContent="Offline rules mode",t.title=`${e.ai.reason}. Drafts come from the built-in rules engine; nothing leaves this computer.`),document.getElementById("shift-label").textContent=`Learning Support Tutor \xB7 ${y(e.state.today)} \xB7 ${e.state.settings.shift.start}-${e.state.settings.shift.end}`,Ce.innerHTML=String(i`${Me.map(s=>i`
     <div class="nav-group">
       <div class="nav-title">${s.group}</div>
       ${s.items.map(n=>{let a=n.badge?n.badge(e):0;return i`<a class="nav-item ${h.route.page===n.id?"active":""}" href="#/${n.id}" ${h.route.page===n.id?i`aria-current="page"`:""}>
@@ -1122,14 +1122,14 @@ Also return summary (one English line for the tutor), module (integer, 0 if none
           <span class="nav-label"><strong>${n.label}</strong><small>${n.sub}</small></span>
           ${a?i`<span class="nav-badge">${a}</span>`:i`<span></span>`}
         </a>`})}
-    </div>`)}`)}function rt(){if(!h.data)return;let e=dt[h.route.page];R.innerHTML=String(e.render(h,h.route.params)),e.mount&&e.mount(R,h,h.route.params)}function Ce(){let e=h.route.page;h.route=Pt(),h.data&&(At(),rt(),e!==h.route.page&&(window.scrollTo(0,0),R.focus({preventScroll:!0})))}function Ee(e){R.addEventListener(e,t=>{let s=dt[h.route.page];if(!s.on)return;let n=t.target.closest("[data-action]");e==="click"&&!n||s.on(e,n?n.dataset.action:null,n||t.target,t,h)})}["click","input","change","keydown","submit"].forEach(Ee);b.addEventListener("click",e=>{if(e.target===b){h.closeModal();return}let t=e.target.closest("[data-action]");if(!t||!b.handlers)return;let s=b.handlers[t.dataset.action];s?s(t,b,e):t.dataset.action==="close"&&h.closeModal()});b.addEventListener("close",()=>{b.handlers=null});document.querySelector('[data-global="reset"]').addEventListener("click",()=>{h.openModal(i`<div class="modal-body">
+    </div>`)}`)}function rt(){if(!h.data)return;let e=dt[h.route.page];R.innerHTML=String(e.render(h,h.route.params)),e.mount&&e.mount(R,h,h.route.params)}function Ee(){let e=h.route.page;h.route=At(),h.data&&(It(),rt(),e!==h.route.page&&(window.scrollTo(0,0),R.focus({preventScroll:!0})))}function Pe(e){R.addEventListener(e,t=>{let s=dt[h.route.page];if(!s.on)return;let n=t.target.closest("[data-action]");e==="click"&&!n||s.on(e,n?n.dataset.action:null,n||t.target,t,h)})}["click","input","change","keydown","submit"].forEach(Pe);b.addEventListener("click",e=>{if(e.target===b){h.closeModal();return}let t=e.target.closest("[data-action]");if(!t||!b.handlers)return;let s=b.handlers[t.dataset.action];s?s(t,b,e):t.dataset.action==="close"&&h.closeModal()});b.addEventListener("close",()=>{b.handlers=null});document.querySelector('[data-global="reset"]').addEventListener("click",()=>{h.openModal(i`<div class="modal-body">
       <h2>Start the shift again?</h2>
       <p class="muted" style="margin-top:6px">All messages, marked papers and logs go back to 14:15 this afternoon.</p>
     </div>
     <div class="modal-foot">
       <button class="btn" data-action="close">Cancel</button>
       <button class="btn btn-primary" data-action="confirm-reset">Reset demo</button>
-    </div>`,{"confirm-reset":async()=>{h.closeModal(),await h.run(()=>h.api.post("/api/reset"),"Demo data reset"),J(),K(),h.navigate("#/briefing"),await h.refresh({keepScroll:!1})}})});window.addEventListener("hashchange",Ce);(async function(){h.route=Pt();try{await h.refresh({keepScroll:!1})}catch(t){R.innerHTML=String(i`<div class="card"><h2>Could not load ShiftMate</h2><p class="muted">${t.message}. Is the server running (npm start)?</p></div>`)}})();})();
+    </div>`,{"confirm-reset":async()=>{h.closeModal(),await h.run(()=>h.api.post("/api/reset"),"Demo data reset"),J(),K(),h.navigate("#/briefing"),await h.refresh({keepScroll:!1})}})});window.addEventListener("hashchange",Ee);(async function(){h.route=At();try{await h.refresh({keepScroll:!1})}catch(t){R.innerHTML=String(i`<div class="card"><h2>Could not load ShiftMate</h2><p class="muted">${t.message}. Is the server running (npm start)?</p></div>`)}})();})();
 </script>
 </body>
 </html>

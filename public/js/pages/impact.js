@@ -100,8 +100,14 @@ const DECISIONS = [
   ['Fees, invoices, complaints', 'Routes to the front desk', 'Not the tutor\'s call'],
 ];
 
+function auditLabel(app, code) {
+  const c = app.data.constants;
+  return c.nextSteps[code] || c.intentLabels[code] || { meets: 'Meets standard', not_yet: 'Not yet' }[code] || code;
+}
+
 function auditCard(app) {
   const a = app.data.state.audit.slice().reverse();
+  const name = (id) => (app.data.state.students.find((s) => s.id === id) || {}).name || '';
   const n = a.length;
   const changed = a.filter((x) => x.overridden).length;
   return html`<section class="card">
@@ -109,8 +115,8 @@ function auditCard(app) {
     ${n ? html`<div class="table-wrap"><table>
       <thead><tr><th>Time</th><th>Area</th><th>About</th><th>Suggested</th><th>Decided</th><th>Tutor changed it?</th></tr></thead>
       <tbody>${a.map((x) => html`<tr>
-        <td class="mono">${timeOf(x.at)}</td><td>${x.feature}${x.mode ? html` <span class="faint">(${x.mode})</span>` : ''}</td><td>${x.subject}</td>
-        <td>${x.suggested}</td><td>${x.decided}</td>
+        <td class="mono">${timeOf(x.at)}</td><td>${x.feature}${x.mode ? html` <span class="faint">(${x.mode})</span>` : ''}</td><td>${name(x.studentId)} · ${x.subject}</td>
+        <td>${auditLabel(app, x.suggested)}</td><td>${auditLabel(app, x.decided)}</td>
         <td>${x.overridden ? html`<span class="chip tone-warn">Yes</span>` : html`<span class="chip">No</span>`} <span class="faint" style="font-size:12px">${x.detail}</span></td>
       </tr>`)}</tbody>
     </table></div>` : html`<p class="muted">Approve a reply or mark a paper to see entries. The override rate is the pilot's quality measure.</p>`}
