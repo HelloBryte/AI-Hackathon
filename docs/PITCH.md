@@ -1,91 +1,83 @@
 # ShiftMate: 3-minute pitch and 2-minute Q&A
 
-**One line:** *Mark once. Reply once. Teach more.* ShiftMate is a co-pilot for the Learning Support Tutor's 14:00-19:00 shift. Rules keep the records, AI drafts the words, and the tutor makes every call.
+**One line:** *Mark once. Reply once. Teach more.* Rules calculate and write the records. Optional AI reads messages and drafts replies from masked record facts. The tutor reviews every proposal.
 
-**Target:** 2:50 spoken, so a stumble still finishes on time.
+**Shape:** the problem, then two scenes (one marked paper, one mixed-language message), then the report, the estimated impact and the pilot. About 300 spoken words: roughly 2:50 at a calm pace with the clicks. A Chinese-English version for rehearsal is in [PITCH-zh.md](PITCH-zh.md); stage tips are in [DELIVERY.md](DELIVERY.md).
 
 ---
 
 ## Cue card (keep this beside the laptop)
 
-| Time | Screen | Click | Say (key words) |
+| Time | Screen | Click | Key words |
 |---|---|---|---|
-| 0:00 | **Overview** | (none) | 300-minute shift · step 8 typed **three times** · W vs C never used |
-| 0:30 | Overview | **Start the shift at 14:15** | Briefing reads Exhibits 2-3 · Justin's leave still sitting in WeChat |
-| 0:40 | Inbox | **Open message** (Justin) → **Approve** | Chinese in, Chinese out · mark leave + tell Ms Wang |
-| 1:00 | Inbox | **Norton Cheng** | half Chinese, half English · books Q&A · records SAC · **asks me to confirm 下周四** |
-| 1:15 | Mark once | **Mark once** → **Fill demo marks** | Exhibit 1 paper · **W = gap, mastery down · C = slip, mastery kept** |
-| 1:40 | Mark once | **Didn't know how to start** | blank mid-paper → it **asks**, doesn't guess · suggests Retest, my call |
-| 1:55 | Mark once | **Apply to all three sheets** | Ex 1, 2, 3 + exam log in one click · parent note in Chinese |
-| 2:10 | Daily report | **Daily report** | counts itself · manager signs |
-| 2:20 | Impact | **Impact and safety** | **75 min a shift, 25%** · 2¢ a reply · $0 offline |
-| 2:35 | Impact | (scroll to Who decides) | same sheets, Sheets add-on, copy-paste WeChat · names masked · tutor decides |
+| 0:00 | **Overview** | (none) | five-hour shift · step 8 typed **three times** · W vs C never used |
+| 0:30 | Mark once | left menu **Mark once** → **Fill demo marks** | Exhibit 1 paper · **W: mastery down · C: mastery kept** |
+| 1:00 | Mark once | **Didn't know how to start** | blank mid-paper → it **asks**, not guesses · Retest is my call |
+| 1:15 | Mark once | **Apply to all three sheets** | three sheets + exam log in one click · note for mum in Chinese |
+| 1:35 | WeChat inbox | left menu **WeChat inbox** → **Norton Cheng** | half Chinese, half English · Q&A proposed · **下周四 is a guess, so it stays unticked** |
+| 2:05 | Daily report | left menu **Daily report** | counts itself from what I just did |
+| 2:15 | Impact | left menu **Impact and safety** | **about 65 minutes a shift, an estimate** · same sheets · AI optional, names masked · offline tonight |
 | 2:50 | | | **Mark once. Reply once. Teach more.** |
 
 ---
 
 ## Before you go on
 
-1. Open the app on your laptop: double-click **`dist/shiftmate.html`** (no install, no internet). Backup: the hosted link on your phone, or `npm start` → http://localhost:3000.
-2. Click **Reset demo** (top right) → **Reset demo** in the dialog. You land on the Overview.
-3. Browser full screen (F11 on Windows, Ctrl+Cmd+F on Mac), zoom 100%. If the projector is 1280×720 or smaller, zoom to 90%.
-4. Close other tabs and turn off notifications.
-5. Rehearse twice with a timer. If you're over 3:00, cut the Daily report (saves 10 s).
+1. Open `shiftmate.html` (double-click; no install, no internet). Backup: the hosted link on your phone.
+2. Click **Reset demo** → **Reset demo** in the dialog. You land on the Overview, at the top.
+3. Laptop in **light mode** (the app follows the system theme). Browser full screen, zoom 100%.
+4. Close other tabs, turn off notifications. Scroll with the mouse wheel or trackpad only.
+5. Everything in the script is reached from the **left menu**, so you never need to scroll to find a button.
 
 ---
 
 ## The script
 
-### 0:00-0:30 · The problem (Problem selection & insight)
+### 0:00-0:30 · The problem (Overview)
 
-*Screen: Overview, scroll to "The bottleneck: step 8".*
-
-> It's 14:15. Our tutor has a 300-minute shift. Before tutoring starts at 16:00 she has seven students to review, nine WeChat messages to answer (four of them in Chinese) and four tests to mark.
+> Our tutor works a five-hour shift. Before tutoring starts at four, she answers WeChat in English and Chinese, and records marked tests.
 >
-> The bottleneck is **step 8**. Every marked test is typed **three times**: into the Marking Sheet, cell by cell into the Progress Sheet, then the Exam Statistics. And the most useful signal on the paper, **W versus C**, a real gap versus a careless slip, never gets used.
+> The worst step is step 8. Every marked test is typed into three spreadsheets. And the best signal on the paper is never used: W versus C, a real gap versus a careless slip.
 >
-> ShiftMate fixes that. **Rules keep the records, AI drafts the words, and the tutor makes every call.**
+> ShiftMate fixes that. Rules write the records. AI only drafts messages. The tutor decides.
 
-### 0:30-1:15 · Briefing and WeChat (Prototype quality, the Mandarin messy case)
+### 0:30-1:35 · Scene 1: one marked paper (Mark once)
 
-Click **Start the shift at 14:15**.
-> At 14:15 the briefing has already read every student's records, and flagged that Justin's leave is still sitting in WeChat.
+Click **Mark once** in the left menu. Phoenix's Module Test 8A is already open.
+> This is Phoenix's Module Test 8A, the same paper as Exhibit 1. I enter the marks once.
 
-Click **Open message** on Justin's alert.
-> His mum wrote in Chinese. The reply is drafted in Chinese from the timetable, and it proposes marking him on leave and telling Ms Wang. I approve, and it's copied for WeChat.
+Click **Fill demo marks**. Point at the red W chip, then the yellow C chip.
+> Question 2 is a W. That point drops a level. Question 7 is a C, a careless slip, so mastery is kept.
 
-Click **Approve, apply and copy reply**, then **Norton Cheng**.
-> Norton writes half in Chinese, half in English. It books his Q&A and records his SAC, and because "下周四" could be misread, it asks me to confirm the date. Fees go to the front desk, and grades are only ever quoted from the records.
+Point at "Why was it left blank?".
+> Question 8 is blank in the middle of the paper. So it asks me why, instead of guessing.
 
-### 1:15-2:10 · Mark once (Creativity, Problem selection)
-
-Click **Mark once**. Phoenix's Module Test 8A is already selected.
-> This is the exact paper from Exhibit 1. I enter the marks once.
-
-Click **Fill demo marks**. Point at the coloured chips.
-> Question 2 is a **W**: a knowledge gap, so 8.2 drops a level. Question 7 is a **C**: a careless slip, so mastery is **kept**. Question 8 is blank in the middle of the paper, so instead of guessing, it asks me why.
-
-Click **Didn't know how to start**.
-> It suggests targeted practice, then a Retest, with its reasons. That decision stays mine.
+Click **Didn't know how to start**. Point at "Suggested".
+> It suggests practice, then a Retest. That decision is mine.
 
 Click **Apply to all three sheets**.
-> One click: Exhibits 1, 2 and 3 and the exam log, plus a result note for his mum in Chinese.
+> One click updates all three sheets and the exam log, and drafts a note for his mum, in Chinese.
 
-### 2:10-2:20 · Daily report
+### 1:35-2:05 · Scene 2: one mixed-language message (WeChat inbox)
+
+Click **WeChat inbox** in the left menu, then **Norton Cheng**.
+> Norton writes half in Chinese, half in English. ShiftMate proposes a Q&A booking. It read "下周四" as the 22nd, but that is a guess, so the box stays unticked and the reply asks him to confirm. Nothing is sent without me.
+
+### 2:05-2:15 · The report
 
 Click **Daily report**.
-> At 18:20 the report counts itself (papers marked, parent replies, Q&A) and lists what needs follow-up. The manager signs here.
+> At six-twenty, the daily report counts itself from the work I just did.
 
-### 2:20-2:50 · Impact, feasibility, responsible AI
+### 2:15-2:50 · Impact, feasibility and responsible AI
 
-Click **Impact and safety**.
-> Our estimate is **75 minutes a shift**, a quarter of it, back to on-site Q&A. That's about six hours a week, and every assumption is editable here. AI drafting costs about **2 cents a reply**, and offline it's free.
+Click **Impact and safety**. Point at "~65 min".
+> We estimate about 65 minutes back per shift, using today's volumes. Every number here can be changed.
 >
-> It fits what the centre already uses: the same three sheets, a Google Sheets add-on that's already in our repo, and copy-paste into Work WeChat. A tutor could pilot it next week. Most students are minors, so grades never touch an AI model, names are masked before any AI call, and every message and decision is the tutor's. If the AI is down, the offline engine takes over, which is what you've just seen.
+> It works with the centre's own tools: the same three sheets, a Google Sheets add-on, and copy-paste into WeChat. AI is optional, and it only sees record facts with student names masked. Tonight it runs fully offline, so the demo cannot fail.
 
 ### 2:50 · Close
 
-> **Mark once. Reply once. Teach more.** Thank you.
+> Mark once. Reply once. Teach more. Thank you.
 
 ---
 
@@ -94,31 +86,31 @@ Click **Impact and safety**.
 | Problem | Do this |
 |---|---|
 | Laptop or projector fails | Open the hosted link on another device or your phone. Same demo. |
-| A screen looks wrong or stale | **Reset demo** and jump straight to the step you're on (left menu). |
-| You click the wrong message or paper | Use the left menu or the paper cards. Every step works in any order. |
-| Running long | Skip the Daily report. Go from Mark once straight to Impact. |
-| A judge asks to see the code | Repo → `lib/core.js` (the marking rules), `lib/triage.js` (WeChat), `apps-script/` (Sheets add-on). |
+| A screen looks wrong | **Reset demo**, then go straight to the step you're on with the left menu. |
+| The reset dialog appears again | Press Esc. |
+| Running long | Skip the Daily report. Go from the inbox straight to Impact. |
+| A judge asks for the code | `lib/core.js` (marking rules), `lib/triage.js` (WeChat), `apps-script/` (Sheets add-on). |
 
 ---
 
 ## Q&A prep (2:00)
 
-Answer in one or two sentences, then stop.
+Repeat the question, answer in one or two sentences, then stop.
 
 | Likely question | Answer |
 |---|---|
-| **Where's the AI?** | AI drafts the WeChat replies: language is the one job where a model genuinely helps. It is built on the Claude API with name masking, and unit-tested. Tonight we run the offline engine on purpose so the demo can't fail. The records use rules, because a grade must be exactly right. |
-| **What if the AI gets it wrong?** | The tutor approves every message. A fact check flags any percentage that isn't in the records. If AI and rules disagree, it says so. One click re-categorises. And the audit trail shows how often the tutor changed a suggestion, which is our quality measure. |
-| **Why not let AI mark the papers?** | Marking handwritten maths is the tutor's judgement, and the brief asks for partial automation. We automate everything after the marking: the triple entry and the analysis. Reading ticks from a photo of the marked paper is the next step. |
-| **How does it connect to their spreadsheets?** | Same layout as Exhibits 1-3. Today: CSV export per exhibit. Pilot week 2: the Google Sheets add-on in our repo, using the same rules file, so data never leaves their Google Workspace. |
-| **Work WeChat?** | Copy-paste for the pilot: no integration risk, and the tutor stays the sender. Work WeChat has an open API we'd look at after the pilot. |
-| **Where does 75 minutes come from?** | Task-by-task estimates, shown and editable on the Impact screen. Marking time itself isn't counted. Week 1 of the pilot replaces the estimates with stopwatch numbers. |
-| **Privacy for minors?** | Grades, mastery and stats are rules-only and never sent to a model. Only the message and the few facts a reply needs go out, with names masked, and each draft shows exactly what was sent. No chatbot talks to students. |
-| **Cost?** | About 2 cents per AI-drafted reply, so under $10 a month at 12 messages a shift. Offline mode is $0. It runs on the front-desk PC or inside Google Workspace. |
-| **What's new here?** | It uses marks the centre already records. W vs C separates gaps from careless slips, and where a blank sits (end of paper or middle) separates time trouble from not knowing. Drafts can only quote the records. And the daily report is a by-product of the work. |
-| **What does the tutor still do?** | Marks the papers, decides blanks, passes Demos, books Retests, approves every message, and gets more time to teach. |
-| **Does it handle Chinese?** | Yes, offline too. It recognises Chinese and mixed messages (请假, 网课, 下周四, 预约) and replies in Chinese. Dates read from Chinese are always confirmed. |
-| **What if a centre's sheets look different?** | The rules only need question → syllabus point → outcome. Mapping columns is a one-off setup in the add-on. |
+| **Where is the AI?** | The AI only drafts WeChat replies. It is built on the Claude API with name masking and tested with a stand-in, not yet live. Tonight we run offline on purpose, and the offline engine handles English and Chinese by itself. |
+| **What does the AI see?** | The message and the few record facts a reply may need, like a test score, with student, parent and school names replaced first. Each draft shows exactly what was sent. |
+| **What if the AI is wrong?** | The tutor approves every reply. A check flags any percentage that isn't in the records. Approval stops if a reply promises something the tutor unticked. Dates read from Chinese must be ticked by hand. |
+| **Why not let AI mark the papers?** | Marking handwritten maths is the tutor's judgement. We automate what comes after: the triple entry and the analysis. |
+| **Does it work with their spreadsheets?** | Same layout as Exhibits 1-3. CSV export works today. The Google Sheets add-on is in the repo; it checks the tab layout and writes nothing if it differs. It hasn't been run in a real Google Sheet yet. |
+| **Work WeChat?** | Copy and paste for the pilot. "Approved" means the tutor approved and copied it. The tutor stays the sender. |
+| **Where does 65 minutes come from?** | Today's volumes times our per-task estimates, on the Impact screen. It is an estimate. Week 1 of a pilot would time the real tasks. |
+| **Cost?** | Offline mode is free. With AI on, about 2 US cents a reply, under 5 US dollars a month at 9 messages a shift. |
+| **Privacy for minors?** | Rules write every record; no AI writes a grade. No chatbot talks to students. Names are masked before any AI call. |
+| **What's new?** | It uses marks the centre already records. W versus C separates gaps from slips. Where a blank sits separates time trouble from not knowing. |
+| **What does the tutor still do?** | Marks papers, explains blanks, passes Demos, books Retests, and approves every message. |
+| **What would you build next?** | Run the add-on in the centre's real sheets, test live AI drafts on real messages, and time each task for the pilot. |
 
 ---
 
@@ -126,10 +118,10 @@ Answer in one or two sentences, then stop.
 
 | Criterion (weight) | Where we show it |
 |---|---|
-| Problem selection & insight (15) | Overview: step 8 triple entry, Today vs With ShiftMate; every screen labelled with its brief step numbers |
-| Creativity (15) | W vs C mastery rule; blank position → time vs knowledge; drafts that can only quote records; report as a by-product |
-| Feasibility (20) | Same three sheets, CSV export, Google Sheets add-on in the repo, copy-paste WeChat, $0 offline mode, 4-week pilot plan with risks and fallbacks |
-| Prototype quality (20) | Live and end to end on data modelled on Exhibits 1-3; messy cases: blank answer, Chinese and mixed-language messages, ambiguous date, messy mark entry |
-| Impact (15) | 75 min/shift (25%) on an editable calculator against the 300-minute shift; benefits to students and parents listed |
-| Responsible AI (10) | Who-decides table, name masking, "what left the centre" panel, fact check, audit trail, offline fallback |
-| Pitch (5) | This script at about 2:50 |
+| Problem selection & insight (15) | Opening: step 8 typed three times; screens labelled with the brief's step numbers |
+| Creativity (15) | W vs C rule; blank position; the report as a by-product |
+| Feasibility (20) | Same three sheets, CSV export, Sheets add-on, copy-paste WeChat, offline mode, pilot plan with risks (Impact screen) |
+| Prototype quality (20) | Live demo on data modelled on Exhibits 1-3; messy cases: a blank answer, a mixed Chinese-English message, a guessed date |
+| Impact (15) | ~65 min a shift on an editable calculator (an estimate); benefits to students and parents |
+| Responsible AI (10) | Tutor approves everything; guessed dates unticked; reply-vs-action check; names masked; offline fallback |
+| Pitch (5) | This script, about 2:50 |

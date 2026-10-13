@@ -1,16 +1,25 @@
 import { html, langChip, timeOf } from '../ui.js';
 
 // Local UI state survives re-renders but not page reloads.
-const local = { busy: new Set(), drafts: {}, checks: {} };
+const local = { busy: new Set(), failed: {}, drafts: {}, checks: {}, mismatch: {} };
 
 export function resetLocal() {
   local.busy.clear();
+  local.failed = {};
   local.drafts = {};
   local.checks = {};
+  local.mismatch = {};
 }
 
 const URGENCY = { today: ['Today', 'tone-bad'], soon: ['Soon', 'tone-warn'], low: ['Low', ''] };
-const STATUS = { new: ['New', 'tone-info'], triaged: ['Draft ready', 'tone-warn'], sent: ['Sent', 'tone-ok'] };
+// "Approved" rather than "Sent": the tutor still pastes the reply into Work WeChat.
+const STATUS = { new: ['New', 'tone-info'], triaged: ['Draft ready', 'tone-warn'], sent: ['Approved', 'tone-ok'] };
+
+// Actions start ticked, except ones that need the tutor to confirm a guess
+// (such as a date read from "下周四").
+function defaultChecks(t) {
+  return new Set(t.actions.map((a, i) => i).filter((i) => !t.actions[i].needsConfirm));
+}
 
 function senderName(app, m) {
   const s = app.data.state.students.find((x) => x.id === m.studentId);
@@ -21,8 +30,9 @@ function senderName(app, m) {
 function selectedId(app, params) {
   const inbox = app.data.state.inbox;
   if (params[0] && inbox.some((m) => m.id === params[0])) return params[0];
-  const next = inbox.find((m) => m.status !== 'sent');
-  return next ? next.id : (inbox[0] && inbox[0].id);
+  const newestFirst = inbox.slice().sort((a, b) => (a.receivedAt < b.receivedAt ? 1 : -1));
+  const next = newestFirst.find((m) => m.status !== 'sent');
+  return next ? next.id : (newestFirst[0] && newestFirst[0].id);
 }
 
 function listItem(app, m, active) {
@@ -47,12 +57,13 @@ function listItem(app, m, active) {
 function actionList(m) {
   const t = m.triage;
   if (!t.actions.length) return html`<p class="muted">No records change. The reply is the whole job.</p>`;
-  const checks = local.checks[m.id] || new Set(t.actions.map((a, i) => i));
+  const checks = local.checks[m.id] || defaultChecks(t);
   local.checks[m.id] = checks;
   return html`${t.actions.map((a, i) => html`<label class="check">
     <input type="checkbox" data-action="toggle-action" data-index="${i}" ${checks.has(i) ? html`checked` : ''}>
-    <span>${a.label}</span>
-  </label>`)}`;
+    <span>${a.label}${a.needsConfirm ? html` <span class="chip tone-warn">confirm first</span>` : ''}</span>
+  </label>`)}
+  <p class="faint" style="font-size:12px">Unticked actions don't happen, so edit the reply if it promises them.</p>`;
 }
 
 function triagePanel(app, m) {
@@ -107,8 +118,9 @@ function triagePanel(app, m) {
         : html`<p class="muted">Nothing. This draft was made by the offline rules engine on this computer.</p>`}
     </details>
 
-    <div class="row" style="margin-top:16px">
-      <button class="btn btn-primary" data-action="approve">Approve, apply and copy reply</button>
+    ${local.mismatch[m.id] ? html`<div class="callout tone-warn" style="margin-top:12px"><span class="icon">!</span><div>${local.mismatch[m.id]}</div></div>` : ''}
+    <div class="row sticky-actions">
+      <button class="btn btn-primary" data-action="approve">${local.mismatch[m.id] ? 'Approve anyway' : 'Approve, apply and copy reply'}</button>
       <button class="btn" data-action="redraft">Redraft</button>
       ${t.mode === 'claude' ? html`<button class="btn btn-ghost" data-action="redraft-rules">Redraft with rules only</button>` : ''}
     </div>`;
@@ -128,12 +140,13 @@ function detail(app, m) {
     </div>
     <div class="bubble" lang="${m.lang === 'en' ? 'en' : 'zh'}">${m.text}</div>
     ${m.status === 'sent' ? html`
-      <div class="section-title">Your reply · sent ${timeOf(m.sentAt)}</div>
+      <div class="section-title">Your reply · approved ${timeOf(m.sentAt)} · copied to paste into Work WeChat</div>
       <div class="bubble out">${m.reply}</div>
       ${m.appliedActions && m.appliedActions.length ? html`<div class="section-title">Applied</div><ul class="list">${m.appliedActions.map((a) => html`<li>${a}</li>`)}</ul>` : ''}
     ` : busy ? html`<div class="row" style="margin-top:16px"><span class="spinner"></span><span class="muted">${app.data.ai.enabled ? 'Claude is reading the message and the records...' : 'Reading the message and the records...'}</span></div>`
       : m.triage ? triagePanel(app, m)
-        : html`<div class="row" style="margin-top:16px"><button class="btn btn-primary" data-action="triage">Draft a reply</button></div>`}
+        : html`${local.failed[m.id] ? html`<div class="callout tone-bad" style="margin-top:16px"><span class="icon">!</span><div>Could not draft this reply: ${local.failed[m.id]}</div></div>` : ''}
+          <div class="row" style="margin-top:16px"><button class="btn btn-primary" data-action="triage">${local.failed[m.id] ? 'Try again' : 'Draft a reply'}</button></div>`}
   </section>`;
 }
 
@@ -156,8 +169,8 @@ export function render(app, params) {
     </div>
     <div class="inbox">
       <div class="card msg-list">
-        <div class="row-between" style="padding:6px 8px 8px"><strong>${open} open</strong><span class="faint">${inbox.length} today</span></div>
-        ${inbox.map((m) => listItem(app, m, m.id === id))}
+        <div class="row-between" style="padding:6px 8px 8px"><strong>${open} open</strong><span class="faint">${inbox.length} today · newest first</span></div>
+        ${inbox.slice().sort((a, b) => (a.receivedAt < b.receivedAt ? 1 : -1)).map((m) => listItem(app, m, m.id === id))}
       </div>
       <div id="inbox-detail" data-id="${id}">${detail(app, current)}</div>
     </div>`;
@@ -165,12 +178,16 @@ export function render(app, params) {
 
 async function triage(app, id, body = {}) {
   local.busy.add(id);
+  delete local.failed[id];
   delete local.drafts[id];
   delete local.checks[id];
+  delete local.mismatch[id];
   if (app.route.page === 'inbox') app.navigate(`#/inbox/${id}`);
   try {
     await app.api.post(`/api/inbox/${id}/triage`, body);
   } catch (err) {
+    // Remember the failure so the screen offers a retry instead of looping.
+    local.failed[id] = err.message;
     app.toast(err.message, 'bad');
   } finally {
     local.busy.delete(id);
@@ -191,7 +208,7 @@ export function mount(root, app, params) {
   const list = root.querySelector('.msg-list');
   if (active && list) list.scrollTop = Math.max(0, active.offsetTop - list.clientHeight / 3);
   const m = app.data.state.inbox.find((x) => x.id === id);
-  if (m && !m.triage && m.status !== 'sent' && !local.busy.has(id)) triage(app, id);
+  if (m && !m.triage && m.status !== 'sent' && !local.busy.has(id) && !local.failed[id]) triage(app, id);
 }
 
 export async function on(type, action, el, event, app) {
@@ -200,6 +217,7 @@ export async function on(type, action, el, event, app) {
 
   if (type === 'input' && action === 'edit-draft') {
     local.drafts[id] = el.value;
+    if (local.mismatch[id]) delete local.mismatch[id];
     return;
   }
   if (type === 'change' && action === 'toggle-action') {
@@ -208,6 +226,7 @@ export async function on(type, action, el, event, app) {
     if (el.checked) set.add(i);
     else set.delete(i);
     local.checks[id] = set;
+    if (local.mismatch[id]) delete local.mismatch[id];
     return;
   }
   if (type === 'change' && action === 'recategorise' && el.value) {
@@ -239,15 +258,25 @@ export async function on(type, action, el, event, app) {
   } else if (action === 'approve') {
     const m = app.data.state.inbox.find((x) => x.id === id);
     const reply = local.drafts[id] !== undefined ? local.drafts[id] : m.triage.draft;
-    const checks = local.checks[id] || new Set(m.triage.actions.map((a, i) => i));
-    const out = await app.run(() => app.api.post(`/api/inbox/${id}/approve`, { reply, actions: [...checks] }));
-    if (!out) return;
+    const checks = local.checks[id] || defaultChecks(m.triage);
+    try {
+      await app.api.post(`/api/inbox/${id}/approve`, { reply, actions: [...checks], confirmMismatch: !!local.mismatch[id] });
+    } catch (err) {
+      if (err.status === 409) {
+        // The reply promises something the tutor unticked: show why, then allow "Approve anyway".
+        local.mismatch[id] = err.message;
+        app.refresh();
+      } else {
+        app.toast(err.message, 'bad');
+      }
+      return;
+    }
     const copied = await app.copy(reply);
-    app.toast(copied ? 'Reply copied: paste it into Work WeChat' : 'Approved. Copy the reply into Work WeChat');
+    app.toast(copied ? 'Approved and copied: paste it into Work WeChat' : 'Approved. Copy the reply into Work WeChat');
     delete local.drafts[id];
     delete local.checks[id];
+    delete local.mismatch[id];
+    // Stay on the approved message so its result is visible; the tutor picks the next one.
     await app.refresh();
-    const next = app.data.state.inbox.find((x) => x.status !== 'sent');
-    if (next) app.navigate(`#/inbox/${next.id}`);
   }
 }

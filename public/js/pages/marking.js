@@ -26,7 +26,6 @@ function fresh(paper) {
     quick: '',
     quickInfo: null,
     preview: null,
-    seq: 0,
     result: null,
   };
 }
@@ -221,7 +220,7 @@ function summaryStrip(plan) {
   const b = n('BLANK');
   return html`<div class="mk-strip">
     <span class="chip tone-ok">✓ ${n('DONE')} correct</span>
-    ${w ? html`<span class="chip tone-bad">W ${w} wrong: knowledge gap, mastery down</span>` : ''}
+    ${w ? html`<span class="chip tone-bad">W ${w} wrong: mastery down</span>` : ''}
     ${c ? html`<span class="chip tone-warn">C ${c} careless: mastery kept</span>` : ''}
     ${b ? html`<span class="chip">— ${b} blank: your call</span>` : ''}
   </div>`;
@@ -359,6 +358,7 @@ function requestBody() {
 }
 
 let timer = null;
+let previewSeq = 0;
 function schedulePreview(app) {
   clearTimeout(timer);
   timer = setTimeout(async () => {
@@ -370,10 +370,12 @@ function schedulePreview(app) {
       rerenderPreview(app);
       return;
     }
-    const seq = ++local.seq;
+    const seq = ++previewSeq;
+    const paperId = local.paperId;
     try {
       const pv = await app.api.post('/api/marking/preview', requestBody());
-      if (seq !== local.seq) return;
+      // Ignore a late answer for an older entry or a different paper.
+      if (seq !== previewSeq || paperId !== local.paperId) return;
       local.preview = pv;
       if (!local.action) local.action = null;
       rerenderPreview(app);
@@ -490,6 +492,10 @@ export async function on(type, action, el, event, app) {
     rerenderPreview(app);
   } else if (action === 'apply') {
     const plan = local.preview && local.preview.plan;
+    if (!plan || !paper || local.preview.student.id !== paper.studentId || local.preview.test.id !== paper.testId) {
+      app.toast('The preview is still updating. Try again in a moment.', 'bad');
+      return;
+    }
     const body = {
       ...requestBody(),
       decision: { action: local.action || plan.suggestion.action, tutorPass: local.tutorPass, addQa: local.addQa, note: local.note },

@@ -137,3 +137,24 @@ test('a retest goes into the next attempt slot, with *P for a tutor pass', () =>
   assert.equal(sheets['Exam Stats'].cells[2][m8 - 1], '72.7');
   assert.equal(sheets['Exam Stats'].cells[2][m8], '72.7 *P');
 });
+
+test('the add-on checks everything before writing anything', () => {
+  const { context, sheets } = loadAddon();
+  context.setupDemo();
+  const payload = { student: 'Phoenix Hu', testId: 'MT8A', outcomes: EXHIBIT1, blankResolutions: { 8: 'time' } };
+
+  // No row for the student in Exam Stats: refused, and no tab changes.
+  sheets['Exam Stats'].cells.splice(1, 1);
+  const snapshot = () => JSON.stringify(['Marking Sheet', 'Progress', 'Exam Log'].map((n) => sheets[n].cells));
+  const before = snapshot();
+  assert.throws(() => context.applyMarking(payload), /No row for "Phoenix Hu".*Nothing was written/);
+  assert.equal(snapshot(), before);
+
+  // A renamed column: refused before any write.
+  const fresh = loadAddon();
+  fresh.context.setupDemo();
+  fresh.sheets['Marking Sheet'].cells[0][6] = 'Result';
+  const rows = fresh.sheets['Marking Sheet'].cells.length;
+  assert.throws(() => fresh.context.applyMarking(payload), /column 7 should be "Outcome"/);
+  assert.equal(fresh.sheets['Marking Sheet'].cells.length, rows);
+});

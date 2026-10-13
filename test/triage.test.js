@@ -86,3 +86,38 @@ test('fact check flags numbers that are not in the records', () => {
   assert.deepEqual(triage.checkDraftFacts('You got 39% last time', facts), []);
   assert.deepEqual(triage.checkDraftFacts('You got 93 % last time', facts), ['93% is not in the student\'s records']);
 });
+
+test('complaints get an apology and go to the manager, never a thank-you', () => {
+  const state = fresh();
+  const cases = [
+    ['I am very unhappy with how the retest was handled. This is not acceptable.', 'en'],
+    ['老师，我对这次的安排很不满意，想投诉', 'zh'],
+  ];
+  for (const [text, lang] of cases) {
+    const m = { id: 'x', studentId: 'annie', relation: 'parent', lang, text };
+    const t = triage.triageRules(m, views.messageContext(state, m));
+    assert.equal(t.primary, 'complaint', text);
+    assert.doesNotMatch(t.draft, /kind words|很高兴/);
+    assert.match(t.draft, /sorry|抱歉/);
+    assert.ok(t.actions.some((a) => a.type === 'handover' && a.to === 'Manager'));
+    assert.equal(t.urgency, 'today');
+  }
+});
+
+test('a guessed date must be confirmed before the SAC is saved', () => {
+  const t = run(fresh(), 'm6');
+  const sac = t.actions.find((a) => a.type === 'record_sac');
+  assert.equal(sac.needsConfirm, true);
+  assert.match(sac.label, /Tick only if the date is right/);
+});
+
+test('approval catches a reply that promises an unticked action', () => {
+  const t = run(fresh(), 'm1');
+  const all = t.actions.map((a, i) => i);
+  assert.deepEqual(triage.replyActionWarnings(t.draft, t.actions, all), []);
+  const withoutNotice = all.filter((i) => t.actions[i].type !== 'notify_teacher');
+  assert.equal(triage.replyActionWarnings(t.draft, t.actions, withoutNotice).length, 1);
+  const online = run(fresh(), 'm2');
+  const noNotice = online.actions.map((a, i) => i).filter((i) => online.actions[i].type !== 'notify_teacher');
+  assert.deepEqual(triage.replyActionWarnings(online.draft, online.actions, noNotice), [], 'naming the teacher is not a claim');
+});

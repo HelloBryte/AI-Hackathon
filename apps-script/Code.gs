@@ -156,49 +156,74 @@ function previewMarking(payload) {
   return plan_(payload).plan;
 }
 
+// The first header cells each tab must have. Checked before any write, so a
+// renamed or re-ordered column stops the add-on instead of corrupting data.
+var REQUIRED_HEADERS = {};
+REQUIRED_HEADERS[TABS.tests] = ['TestID', 'Name', 'Kind', 'Module', 'Time limit', 'Question', 'Point', 'Marks'];
+REQUIRED_HEADERS[TABS.marking] = ['Date', 'Student', 'Test', 'Attempt', 'Question', 'Point', 'Outcome'];
+REQUIRED_HEADERS[TABS.progress] = ['Point', 'Module', 'Title'];
+REQUIRED_HEADERS[TABS.stats] = ['Student', 'Class', 'M1 A'];
+REQUIRED_HEADERS[TABS.log] = ['Date', 'Student', 'Paper'];
+
+function checkSchema_() {
+  Object.keys(REQUIRED_HEADERS).forEach(function (name) {
+    var header = sheet_(name).getRange(1, 1, 1, REQUIRED_HEADERS[name].length).getValues()[0];
+    REQUIRED_HEADERS[name].forEach(function (want, i) {
+      if (String(header[i]).trim().toLowerCase().indexOf(want.toLowerCase()) !== 0) {
+        throw new Error('Tab "' + name + '", column ' + (i + 1) + ' should be "' + want + '" but is "' + header[i] + '". Nothing was written.');
+      }
+    });
+  });
+}
+
 function applyMarking(payload) {
   var lock = LockService.getDocumentLock();
   lock.waitLock(10000);
   try {
+    // 1. Every check first. Nothing is written until all of them pass.
+    checkSchema_();
     var p = plan_(payload);
     var plan = p.plan;
     if (plan.missing.length) throw new Error('Not marked yet: Q' + plan.missing.join(', Q'));
     if (plan.unresolvedBlanks.length) throw new Error('Say why Q' + plan.unresolvedBlanks.join(', Q') + ' was left blank');
+    if (plan.exhibit3 && !plan.exhibit3.slot) throw new Error('Attempts A-D are all used for this Module. Nothing was written.');
+    if (plan.exhibit3 && !p.stats.row) throw new Error('No row for "' + payload.student + '" in the Exam Stats tab. Nothing was written.');
+    var rowOf = {};
+    p.prog.points.forEach(function (pt) { rowOf[pt.id] = pt.row; });
+    var missingPoints = plan.exhibit2.changes.filter(function (c) { return !rowOf[c.point]; }).map(function (c) { return c.point; });
+    if (missingPoints.length) throw new Error('Points missing from the Progress tab: ' + missingPoints.join(', ') + '. Nothing was written.');
+    var marking = sheet_(TABS.marking);
+    var progress = sheet_(TABS.progress);
+    var stats = sheet_(TABS.stats);
+    var log = sheet_(TABS.log);
     var decision = payload.decision || {};
     var tutorPass = !!decision.tutorPass && plan.score.pct < PASS_PCT;
     var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
 
-    // Exhibit 1
-    var marking = sheet_(TABS.marking);
+    // 2. Exhibit 1
     plan.exhibit1.forEach(function (r) {
       marking.appendRow([today, payload.student, p.test.name, plan.exhibit3 ? plan.exhibit3.slot : '-', r.q, r.point,
         r.outcome === 'BLANK' ? '\\Blank\\' : r.outcome, r.awarded, r.max]);
     });
 
-    // Exhibit 2
-    var progress = sheet_(TABS.progress);
-    var rowOf = {};
-    p.prog.points.forEach(function (pt) { rowOf[pt.id] = pt.row; });
+    // 3. Exhibit 2
     plan.exhibit2.changes.forEach(function (c) {
-      if (!rowOf[c.point]) return;
       var cell = progress.getRange(rowOf[c.point], p.prog.col);
       cell.setValue(MASTERY_TEXT[c.after]);
       cell.setBackground(MASTERY_COLOUR[c.after][0]);
       cell.setFontColor(MASTERY_COLOUR[c.after][1]);
     });
 
-    // Exhibit 3 (Module Tests only)
+    // 4. Exhibit 3 (Module Tests only)
     if (plan.exhibit3) {
-      if (!plan.exhibit3.slot) throw new Error('Attempts A-D are all used for this Module');
-      if (!p.stats.row) throw new Error('No row for "' + payload.student + '" in the Exam Stats tab');
-      var cell3 = sheet_(TABS.stats).getRange(p.stats.row, statsCell_(p.test.module, 'ABCD'.indexOf(plan.exhibit3.slot)));
+      var cell3 = stats.getRange(p.stats.row, statsCell_(p.test.module, 'ABCD'.indexOf(plan.exhibit3.slot)));
       cell3.setValue(plan.score.pct + (tutorPass ? ' *P' : ''));
       cell3.setBackground(BAND_COLOUR[plan.score.band]);
     }
 
-    // Exam log (Scenario C, step 5)
+    // 5. Exam log (Scenario C, step 5)
     var t = payload.timing || {};
-    sheet_(TABS.log).appendRow([today, payload.student, p.test.name, t.start || '', t.end1 || '', t.end2 || '',
+    log.appendRow([today, payload.student, p.test.name, t.start || '', t.end1 || '', t.end2 || '',
       t.checks === undefined ? '' : t.checks, plan.score.pct]);
 
     return {

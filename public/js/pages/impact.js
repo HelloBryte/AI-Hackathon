@@ -1,10 +1,10 @@
 import { html, timeOf } from '../ui.js';
 import {
-  ROWS, SHIFT_MIN, SHIFTS_PER_WEEK, PRICE, EST_TOKENS, values, totals,
+  ROWS, SHIFT_MIN, SHIFTS_PER_WEEK, PRICE, EST_TOKENS, values, totals, approxMinutes,
 } from '../impact-model.js';
 
 function money(x) {
-  return `$${x < 1 ? x.toFixed(3) : x.toFixed(2)}`;
+  return `US$${x < 1 ? x.toFixed(3) : x.toFixed(2)}`;
 }
 
 function calculator() {
@@ -32,15 +32,15 @@ function headline() {
   const savedPct = (t.saved / SHIFT_MIN) * 100;
   const manualPct = (t.manual / SHIFT_MIN) * 100;
   return html`<div class="row" style="gap:24px;align-items:flex-end">
-    <div><div class="big-number">${Math.round(t.saved)} min</div><div class="muted">returned per 14:00-19:00 shift</div></div>
-    <div><div class="big-number">${Math.round(savedPct)}%</div><div class="muted">of the shift</div></div>
-    <div><div class="big-number">${((t.saved * SHIFTS_PER_WEEK) / 60).toFixed(1)} h</div><div class="muted">per week (${SHIFTS_PER_WEEK} shifts)</div></div>
+    <div><div class="big-number">~${approxMinutes(t.saved)} min</div><div class="muted">estimated, returned per 14:00-19:00 shift</div></div>
+    <div><div class="big-number">~${Math.round(savedPct)}%</div><div class="muted">of the shift</div></div>
+    <div><div class="big-number">~${((t.saved * SHIFTS_PER_WEEK) / 60).toFixed(1)} h</div><div class="muted">per week (${SHIFTS_PER_WEEK} shifts)</div></div>
   </div>
   <div class="meter" style="margin-top:14px" role="img" aria-label="Admin time before and after">
     <span class="m-not_understood" style="width:${Math.min(100, manualPct - savedPct)}%" title="Admin time that remains"></span>
     <span class="m-mastered" style="width:${Math.min(100, savedPct)}%" title="Time returned to tutoring"></span>
   </div>
-  <div class="legend" style="margin-top:6px"><span><i class="m-not_understood"></i>Admin left (${Math.round(t.withSm)} min)</span><span><i class="m-mastered"></i>Returned to on-site Q&A (${Math.round(t.saved)} min)</span><span><i class="b-none"></i>Rest of the 300-minute shift</span></div>`;
+  <div class="legend" style="margin-top:6px"><span><i class="m-not_understood"></i>Admin left (~${approxMinutes(t.withSm)} min)</span><span><i class="m-mastered"></i>Returned to on-site Q&A (~${approxMinutes(t.saved)} min)</span><span><i class="b-none"></i>Rest of the 300-minute shift</span></div>`;
 }
 
 function costCard(app) {
@@ -52,14 +52,14 @@ function costCard(app) {
     <h2>Running cost</h2>
     <table style="margin-top:8px">
       <tbody>
-        <tr><td>Claude per message (about ${EST_TOKENS.input} in / ${EST_TOKENS.output} out tokens, Opus 5.5)</td><td class="num"><strong>${money(perMsg)}</strong></td></tr>
-        <tr><td>Per month at ${values.wechat.vol} messages a shift</td><td class="num"><strong>${money(monthly)}</strong></td></tr>
-        <tr><td>Marking, records, briefing, report (rules, no AI)</td><td class="num"><strong>$0</strong></td></tr>
-        <tr><td>Hosting: Google Apps Script inside the centre's Workspace, or this app on the front-desk PC</td><td class="num"><strong>$0</strong></td></tr>
+        <tr><td>AI draft per message, if switched on (Claude Opus 5.5 list price; about ${EST_TOKENS.input} input and ${EST_TOKENS.output} output tokens, an estimate)</td><td class="num"><strong>${money(perMsg)}</strong></td></tr>
+        <tr><td>Per month at ${values.wechat.vol} messages a shift, ${SHIFTS_PER_WEEK} shifts a week</td><td class="num"><strong>${money(monthly)}</strong></td></tr>
+        <tr><td>Marking, records, briefing, report (rules, no AI)</td><td class="num"><strong>US$0</strong></td></tr>
+        <tr><td>Hosting: Google Apps Script inside the centre's Workspace, or this app on the front-desk PC</td><td class="num"><strong>US$0</strong></td></tr>
         <tr><td>This demo so far: ${u.calls} Claude call(s)</td><td class="num">${money(spent)}</td></tr>
       </tbody>
     </table>
-    <p class="card-sub" style="margin-top:8px">Offline rules mode costs nothing and is the fallback when the API is down.</p>
+    <p class="card-sub" style="margin-top:8px">All prices in US dollars. Offline mode costs nothing and is the fallback when the API is down.</p>
   </section>`;
 }
 
@@ -111,14 +111,14 @@ export function render(app) {
       <div class="card-head"><h2>Time returned to students</h2><span class="card-sub">Edit any number: the totals update</span></div>
       <div id="impact-head">${headline()}</div>
       <div class="table-wrap" style="margin-top:16px" id="impact-table">${calculator()}</div>
-      <p class="card-sub" style="margin-top:8px">Basis: volumes match today's demo data (7 lessons, 9 messages by 14:30, 4 papers waiting); minutes per task are our estimates for a typical weekday, deliberately conservative. Marking the paper itself is unchanged and not counted. Week 1 of the pilot replaces these estimates with timed measurements.</p>
+      <p class="card-sub" style="margin-top:8px">Estimate, not a measurement. Volumes are today's demo data (7 lessons, 9 messages by 14:30, 4 papers waiting); minutes per task are our own estimates. Marking the paper itself is unchanged and not counted. Week 1 of the pilot replaces these estimates with timed measurements.</p>
     </section>
 
     <div class="grid grid-2" style="margin-top:14px;align-items:start">
       <section class="card">
         <h2>Who gets what</h2>
         <ul class="list" style="margin-top:8px">
-          <li><strong>Students:</strong> ~${Math.round(totals().saved)} more minutes of on-site Q&A a shift; feedback that separates knowledge gaps from careless slips; SAC gaps spotted a week ahead.</li>
+          <li><strong>Students:</strong> an estimated ~${approxMinutes(totals().saved)} more minutes of on-site Q&A a shift; feedback that separates knowledge gaps from careless slips; SAC gaps spotted a week ahead.</li>
           <li><strong>Parents:</strong> replies in minutes, in Chinese or English, quoting the real records.</li>
           <li><strong>Tutor:</strong> no triple entry; one place for the day; the report writes itself.</li>
           <li><strong>Manager:</strong> consistent daily figures and a follow-up list; an audit trail of every AI suggestion.</li>
@@ -139,8 +139,8 @@ export function render(app) {
       <section class="card">
         <h2>Student data (most are minors)</h2>
         <ul class="list" style="margin-top:8px">
-          <li>Grades, mastery and statistics never go to an AI model: they come from fixed rules over the tutor's marks.</li>
-          <li>Only the WeChat message and the few facts a reply needs are sent, with student, parent and school names replaced by placeholders. Each draft shows exactly what was sent.</li>
+          <li>Rules calculate and write every record. No AI writes a grade, a mastery colour or a statistic.</li>
+          <li>Optional AI drafting reads the WeChat message plus the few record facts a reply may need (for example a test score or the next SAC date). Student, parent and school names are replaced by placeholders first, and each draft shows exactly what was sent.</li>
           <li>Records stay in the centre's own Google Workspace (pilot) or on the centre's PC (this demo).</li>
           <li>No chatbot talks to students. Every message out is the tutor's.</li>
           <li>One switch (SHIFTMATE_AI=off) runs everything offline.</li>
@@ -150,9 +150,10 @@ export function render(app) {
         <h2>When the AI is wrong</h2>
         <ul class="list" style="margin-top:8px">
           <li><strong>Wrong category:</strong> the tutor re-categorises in one click; the rules rebuild the draft and actions.</li>
-          <li><strong>A made-up number:</strong> the fact check flags any percentage in a draft that is not in the records.</li>
+          <li><strong>A made-up percentage:</strong> a simple check flags any percentage in a draft that is not in the records. Other wording is checked by the tutor.</li>
           <li><strong>AI and rules disagree:</strong> the draft is flagged for a closer look.</li>
-          <li><strong>A date read wrongly</strong> ("下周四"): shown as a date to confirm, never silently saved.</li>
+          <li><strong>A date read wrongly</strong> ("下周四"): the action starts unticked and is saved only if the tutor ticks it.</li>
+          <li><strong>A reply that promises an unticked action:</strong> approval stops and asks the tutor to edit or confirm.</li>
           <li><strong>API down or request declined:</strong> drafts fall back to the rules engine and the screen says so.</li>
         </ul>
       </section>
@@ -168,8 +169,9 @@ export function render(app) {
         </ul>
         <ul class="list">
           <li><strong>Risk:</strong> Work WeChat cannot be auto-sent here. <strong>Fallback:</strong> copy and paste by design; WeCom API later.</li>
-          <li><strong>Risk:</strong> each centre's sheets differ. <strong>Fallback:</strong> column mapping in the add-on, CSV export.</li>
-          <li><strong>Risk:</strong> API cost or outage. <strong>Fallback:</strong> rules mode, $0.</li>
+          <li><strong>Risk:</strong> each centre's sheets differ. <strong>Fallback:</strong> the add-on checks the tab layout and stops before writing if it differs; tab names are set in one place; CSV export works with any layout.</li>
+          <li><strong>Risk:</strong> API cost or outage. <strong>Fallback:</strong> offline mode, US$0.</li>
+          <li><strong>Not yet tested:</strong> live Claude drafting and the add-on in a real Google Sheet. Both are covered by automated tests with stand-ins, and are the first pilot checks.</li>
         </ul>
       </div>
     </section>

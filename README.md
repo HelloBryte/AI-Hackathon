@@ -68,8 +68,8 @@ npm run build:gas         # copy the shared rules into the Google Sheets add-on
 
 - **Rules for records, AI for words.** Grades, mastery colours, attempt slots and the daily counts come from `lib/core.js`, a plain rules file with no AI. A number written to a sheet must be right and auditable.
 - **Use what the centre already records.** W vs C separates knowledge gaps from careless slips. *Where* a blank sits (after the last answered question, or in the middle) separates time trouble from not knowing. The suggestion is shown; the tutor decides.
-- **Drafts may only quote the records.** Facts are built in code (`lib/triage.js`) and handed to Claude; a fact check flags any percentage in a draft that is not in the records.
-- **Privacy for minors.** Student, parent and school names become placeholders before a message reaches Claude (`lib/ai.js`), and each draft shows exactly what was sent. No chatbot talks to students.
+- **Drafts are built on record facts.** Facts are built in code (`lib/triage.js`) and handed to Claude. A simple check flags any percentage in a draft that is not in the records; the rest of the wording is checked by the tutor, and approval stops if a reply promises an action the tutor unticked.
+- **Privacy for minors.** Rules calculate and write records; optional AI interprets messages and drafts replies using masked record facts; the tutor reviews every proposal. When AI drafting is on, the message and the few record facts a reply may need (for example a test score) are sent with student, parent and school names replaced by placeholders (`lib/ai.js`), and each draft shows exactly what was sent. No chatbot talks to students.
 - **Fits current tools.** Same three sheets (CSV export per exhibit; Apps Script add-on in `apps-script/`), copy-paste into Work WeChat, and $0 offline mode.
 
 ## Project layout
@@ -90,5 +90,12 @@ docs/SUBMISSION.md  submission email template
 docs/case/        case brief, judging rubric and event schedule
 docs/screenshots/ the screenshots in this README
 ```
+
+## Known limits
+
+- **Not yet run live:** Claude drafting (tested with a stand-in API client) and the Google Sheets add-on (tested against an in-memory spreadsheet). Both are the first checks of a pilot.
+- **Time saved is an estimate:** ~65 minutes a shift from the demo day's volumes and our per-task estimates, editable on the Impact screen.
+- **Demo data resets each day:** the prototype reseeds when the date changes. In a pilot the centre's Google Sheets are the system of record.
+- **WeChat is copy-paste:** "Approved" means the tutor approved and copied the reply; the tutor still sends it from Work WeChat.
 
 All student records in the demo are invented; names follow the brief's sample sheets.

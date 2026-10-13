@@ -24,7 +24,7 @@ export function render(app) {
       ${stat(c.qaStudents, 'Students helped in Q&A', `~${c.qaQuestions} questions`)}
       ${stat(c.testsMarked, 'Test papers marked')}
       ${stat(c.sacAnswers, 'SAC / Practice SAC answers')}
-      ${stat(c.parentFeedback, 'Parent feedback completed', `${c.repliesSent} WeChat replies in total`)}
+      ${stat(c.parentFeedback, 'Parent feedback completed', `${c.repliesSent} WeChat replies approved`)}
       ${stat(c.demoReviews, 'Demo checks')}
     </div>
     <div class="grid grid-2">

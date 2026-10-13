@@ -65,7 +65,12 @@ test('approving a reply applies only the ticked actions', async () => {
   const { store, handle } = setup();
   await handle('POST', '/api/inbox/m1/triage', {});
   const msg = store.state.inbox.find((m) => m.id === 'm1');
-  const res = await handle('POST', '/api/inbox/m1/approve', { reply: msg.triage.draft, actions: [0, 2] });
+  // The draft says Ms Wang was told, so unticking that action must be caught.
+  const blocked = await handle('POST', '/api/inbox/m1/approve', { reply: msg.triage.draft, actions: [0, 2] });
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.body.error, /Tell Ms Wang/);
+  assert.equal(store.state.inbox.find((m) => m.id === 'm1').status, 'triaged');
+  const res = await handle('POST', '/api/inbox/m1/approve', { reply: msg.triage.draft, actions: [0, 2], confirmMismatch: true });
   assert.equal(res.status, 200);
   assert.equal(store.state.timetable.find((t) => t.studentId === 'justin').status, 'leave');
   assert.equal(store.state.teacherNotices.length, 0);
@@ -117,4 +122,18 @@ test('unknown routes and bad input return clean errors', async () => {
   assert.equal((await handle('GET', '/api/nope')).status, 404);
   assert.equal((await handle('POST', '/api/marking/apply', { paperId: 'zzz' })).status, 404);
   assert.equal((await handle('POST', '/api/timetable/t1/checkin', {})).status, 200);
+});
+
+test('a refused marking writes nothing to any sheet', async () => {
+  const { store, handle } = setup();
+  store.state.examStats.phoenix[8] = { attempts: [{ slot: 'A', pct: 10 }, { slot: 'B', pct: 20 }, { slot: 'C', pct: 30 }, { slot: 'D', pct: 40 }] };
+  const before = JSON.stringify({ r: store.state.markingRecords, p: store.state.progress, l: store.state.examLog, x: store.state.examStats });
+  const res = await handle('POST', '/api/marking/apply', { ...PHOENIX, blankResolutions: { 8: 'didnt_know' } });
+  assert.equal(res.status, 400);
+  assert.match(res.body.error, /attempt slots/);
+  assert.equal(JSON.stringify({ r: store.state.markingRecords, p: store.state.progress, l: store.state.examLog, x: store.state.examStats }), before);
+  assert.ok(store.state.pendingPapers.some((p) => p.id === 'p1'));
+
+  const bad = await handle('POST', '/api/marking/apply', { ...PHOENIX, blankResolutions: { 8: 'aliens' } });
+  assert.equal(bad.status, 400);
 });

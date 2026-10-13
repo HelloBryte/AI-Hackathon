@@ -1,5 +1,5 @@
 import { html } from '../ui.js';
-import { totals, SHIFT_MIN, perMessageCost } from '../impact-model.js';
+import { totals, SHIFT_MIN, perMessageCost, approxMinutes } from '../impact-model.js';
 
 // The shift as the brief lays it out, in minutes from 14:00.
 const PHASES = [
@@ -71,7 +71,7 @@ export function render(app) {
     <section class="ov-hero">
       <div class="kicker">AIPS Hackathon · Automating the Learning Support Tutor's Workday · Team Ethan</div>
       <h1 class="ov-title">Mark once. Reply once. <span>Teach more.</span></h1>
-      <p class="ov-lead">ShiftMate is a co-pilot for the Learning Support Tutor's 14:00-19:00 shift. Rules keep the three record sheets, Claude drafts the WeChat replies, and the tutor makes every call about a student.</p>
+      <p class="ov-lead">ShiftMate is a co-pilot for the Learning Support Tutor's 14:00-19:00 shift. Rules calculate and write the records. Optional AI reads messages and drafts replies from masked record facts. The tutor reviews every proposal.</p>
       <div class="row" style="margin-top:18px;gap:10px">
         <a class="btn btn-primary" href="#/briefing">Start the shift at 14:15</a>
         <a class="btn" href="#/marking">Go to Mark once</a>
@@ -80,10 +80,10 @@ export function render(app) {
     </section>
 
     <div class="ov-stats">
-      <div class="ov-stat"><span class="ov-num">${Math.round(t.saved)} min</span><span>returned to students every shift (${Math.round((t.saved / SHIFT_MIN) * 100)}% of it)</span></div>
+      <div class="ov-stat"><span class="ov-num">~${approxMinutes(t.saved)} min</span><span>estimated time returned to students every shift (~${Math.round((t.saved / SHIFT_MIN) * 100)}% of it)</span></div>
       <div class="ov-stat"><span class="ov-num">3 → 1</span><span>one marking entry fills all three record sheets</span></div>
       <div class="ov-stat"><span class="ov-num">${chinese} of ${inbox.length}</span><span>of today's WeChat messages are in Chinese, and get replies in Chinese</span></div>
-      <div class="ov-stat"><span class="ov-num">$0</span><span>offline; about ${cents}¢ per reply when Claude drafts</span></div>
+      <div class="ov-stat"><span class="ov-num">US$0</span><span>offline; about ${cents} US cents per reply if AI drafting is on</span></div>
     </div>
 
     <section class="ov-section">
@@ -111,7 +111,7 @@ export function render(app) {
       <h2>Who does what</h2>
       <div class="ov-roles">
         <div class="ov-role"><span class="chip">Rules</span><strong>Keep the records</strong><p>Scores, mastery colours, attempt slots, SAC readiness and the daily counts. Fixed, auditable, no AI.</p></div>
-        <div class="ov-role"><span class="chip tone-info">Claude</span><strong>Draft the words</strong><p>WeChat replies in the sender's language, quoting only the records. Names are masked before anything is sent.</p></div>
+        <div class="ov-role"><span class="chip tone-info">AI (optional)</span><strong>Draft the words</strong><p>Reads each WeChat message and drafts a reply in the sender's language from the record facts it needs. Student, parent and school names are masked before anything is sent.</p></div>
         <div class="ov-role"><span class="chip tone-ok">Tutor</span><strong>Make every call</strong><p>Why a question was blank, pass or Retest, passing a Demo, and every message that goes out.</p></div>
       </div>
     </section>`;

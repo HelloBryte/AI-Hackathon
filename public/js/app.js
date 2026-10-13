@@ -40,7 +40,11 @@ async function request(method, url, body) {
   // Single-file build: the API runs inside the page (static/local-api.js).
   if (window.SHIFTMATE_LOCAL_API) {
     const out = await window.SHIFTMATE_LOCAL_API(method, url, body);
-    if (out.status !== 200) throw new Error((out.body && out.body.error) || `Request failed (${out.status})`);
+    if (out.status !== 200) {
+      const err = new Error((out.body && out.body.error) || `Request failed (${out.status})`);
+      err.status = out.status;
+      throw err;
+    }
     return out.body;
   }
   const res = await fetch(url, {
@@ -49,7 +53,11 @@ async function request(method, url, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  if (!res.ok) {
+    const err = new Error(data.error || `Request failed (${res.status})`);
+    err.status = res.status;
+    throw err;
+  }
   return data;
 }
 
@@ -203,6 +211,9 @@ document.querySelector('[data-global="reset"]').addEventListener('click', () => 
     </div>`, {
     'confirm-reset': async () => {
       app.closeModal();
+      // Move focus off the Reset button, so Space or Enter can't reopen this dialog.
+      if (document.activeElement) document.activeElement.blur();
+      main.focus({ preventScroll: true });
       await app.run(() => app.api.post('/api/reset'), 'Demo data reset');
       marking.resetLocal();
       inbox.resetLocal();
