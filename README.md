@@ -4,6 +4,8 @@
 
 ShiftMate is a working prototype for the AIPS Hackathon case *Automating the Learning Support Tutor's Workday*. It is a co-pilot for the tutor's 14:00-19:00 shift: rules keep the three record sheets, Claude only drafts the wording of WeChat replies, and the tutor makes every judgement call.
 
+**Case materials** (in [`docs/case/`](docs/case/)): the [case brief (PDF)](docs/case/AI_Hackathon_Brief_-_Learning_Support_Tutor_Daily_Log_EN.pdf), the [judging rubric (PDF)](docs/case/AIPS_Hackathon_Judging_Rubric.pdf), and the [event schedule](docs/case/event-schedule.jpg). [`docs/case/README.md`](docs/case/README.md) summarises all three, including the rubric table. The pitch script is in [`docs/PITCH.md`](docs/PITCH.md).
+
 | Shift phase | Brief steps | What ShiftMate does |
 |---|---|---|
 | 14:15 Briefing | 2-5 | Timetable, attendance changes still sitting in WeChat, and a prep card per student built from Exhibits 2-3 (incomplete tests, SAC readiness, recent W and C mistakes, unresolved questions) |
@@ -76,6 +78,7 @@ public/           the web app (no framework)
 static/           entry point for dist/shiftmate.html
 apps-script/      Google Sheets add-on for the pilot
 docs/PITCH.md     3-minute script, demo click path and Q&A prep
+docs/case/        case brief, judging rubric and event schedule
 ```
 
 All student records in the demo are invented; names follow the brief's sample sheets.
