@@ -182,6 +182,19 @@ export async function mount(root, app, params) {
   }
 }
 
+function download(name, text) {
+  const blob = new Blob([`\ufeff${text}`], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(a.href);
+    a.remove();
+  }, 1000);
+}
+
 export async function on(type, action, el, event, app) {
   if (type !== 'click' || action !== 'export') return;
   const url = `/api/export/${el.dataset.sheet}.csv`;
@@ -189,15 +202,24 @@ export async function on(type, action, el, event, app) {
     window.location.href = url;
     return;
   }
+  // Browser build: show the CSV so it can be copied straight into Google Sheets.
   const out = await window.SHIFTMATE_LOCAL_API('GET', url);
-  const blob = new Blob([`\ufeff${out.csv}`], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = out.filename;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    URL.revokeObjectURL(a.href);
-    a.remove();
-  }, 1000);
+  app.openModal(html`<div class="modal-body">
+      <h2>${out.filename}</h2>
+      <p class="muted" style="margin:4px 0 10px">Copy and paste into the matching tab of the centre's Google Sheet.</p>
+      <textarea id="csv-text" rows="12" class="mono" readonly>${out.csv}</textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-action="close">Close</button>
+      ${window.location.protocol === 'file:' ? html`<button class="btn" data-action="download">Download</button>` : ''}
+      <button class="btn btn-primary" data-action="copy-csv">Copy</button>
+    </div>`, {
+    'copy-csv': async (btn, modal) => {
+      const ta = modal.querySelector('#csv-text');
+      const ok = await app.copy(out.csv);
+      if (!ok) ta.select();
+      app.toast(ok ? 'CSV copied' : 'Press Ctrl+C to copy the selected text');
+    },
+    download: () => download(out.filename, out.csv),
+  });
 }

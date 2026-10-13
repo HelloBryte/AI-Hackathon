@@ -184,12 +184,25 @@ modal.addEventListener('click', (event) => {
 });
 modal.addEventListener('close', () => { modal.handlers = null; });
 
-document.querySelector('[data-global="reset"]').addEventListener('click', async () => {
-  if (!window.confirm('Reset all demo data to the start of the shift?')) return;
-  await app.run(() => app.api.post('/api/reset'), 'Demo data reset');
-  marking.resetLocal();
-  inbox.resetLocal();
-  await app.refresh({ keepScroll: false });
+// Confirmation lives in the page: embedded viewers block window.confirm().
+document.querySelector('[data-global="reset"]').addEventListener('click', () => {
+  app.openModal(html`<div class="modal-body">
+      <h2>Start the shift again?</h2>
+      <p class="muted" style="margin-top:6px">All messages, marked papers and logs go back to 14:15 this afternoon.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-action="close">Cancel</button>
+      <button class="btn btn-primary" data-action="confirm-reset">Reset demo</button>
+    </div>`, {
+    'confirm-reset': async () => {
+      app.closeModal();
+      await app.run(() => app.api.post('/api/reset'), 'Demo data reset');
+      marking.resetLocal();
+      inbox.resetLocal();
+      app.navigate('#/briefing');
+      await app.refresh({ keepScroll: false });
+    },
+  });
 });
 
 window.addEventListener('hashchange', onRoute);

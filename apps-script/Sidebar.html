@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font: 13px/1.4 Arial, sans-serif; color: #142033; margin: 12px; }
+    h1 { font-size: 16px; margin: 0 0 8px; }
+    label { display: block; font-weight: bold; margin: 8px 0 2px; font-size: 12px; color: #5d6779; }
+    select, input { width: 100%; box-sizing: border-box; padding: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 6px; }
+    td { padding: 2px 3px; border-bottom: 1px solid #e2e6ed; }
+    .seg button { border: 1px solid #cfd5df; background: #fff; padding: 3px 6px; cursor: pointer; font-weight: bold; }
+    .seg button.on.DONE { background: #23874f; color: #fff; }
+    .seg button.on.W { background: #c33c3c; color: #fff; }
+    .seg button.on.C { background: #f2b33d; }
+    .seg button.on.BLANK { background: #2f3542; color: #fff; }
+    .row { display: flex; gap: 6px; }
+    .btn { margin-top: 10px; width: 100%; padding: 8px; font-weight: bold; cursor: pointer; border: 1px solid #12305a; background: #fff; color: #12305a; border-radius: 6px; }
+    .btn.primary { background: #12305a; color: #fff; }
+    .box { background: #f4f6f9; border-radius: 6px; padding: 8px; margin-top: 8px; }
+    .err { color: #c33c3c; margin-top: 8px; }
+    .muted { color: #5d6779; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Mark once</h1>
+  <p class="muted">One entry updates Marking Sheet, Progress, Exam Stats and Exam Log.</p>
+  <label for="student">Student</label><select id="student"></select>
+  <label for="test">Test</label><select id="test"></select>
+  <table id="pad"></table>
+  <div class="row">
+    <div><label for="start">Start</label><input id="start" placeholder="16:05"></div>
+    <div><label for="end1">1st pass</label><input id="end1" placeholder="16:52"></div>
+    <div><label for="end2">2nd pass</label><input id="end2" placeholder="16:58"></div>
+    <div><label for="checks">Checks</label><input id="checks" type="number" min="0"></div>
+  </div>
+  <div id="blanks"></div>
+  <button class="btn" id="preview">Preview changes</button>
+  <div id="result"></div>
+  <div id="decision"></div>
+  <button class="btn primary" id="apply" disabled>Apply to all tabs</button>
+  <div id="error" class="err"></div>
+
+  <script>
+    var setup = null;
+    var outcomes = {};
+    var blanks = {};
+    var lastPlan = null;
+
+    function el(id) { return document.getElementById(id); }
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+    function currentTest() { return setup.tests.filter(function (t) { return t.id === el('test').value; })[0]; }
+    function payload() {
+      return {
+        student: el('student').value, testId: el('test').value, outcomes: outcomes, blankResolutions: blanks,
+        timing: { start: el('start').value, end1: el('end1').value, end2: el('end2').value, checks: el('checks').value === '' ? undefined : Number(el('checks').value) },
+        decision: { tutorPass: el('tutorPass') ? el('tutorPass').checked : false },
+      };
+    }
+    function fail(e) { el('error').textContent = e.message || String(e); }
+
+    function drawPad() {
+      var t = currentTest();
+      el('pad').innerHTML = t.questions.map(function (q) {
+        return '<tr><td><b>' + esc(q.q) + '</b></td><td>' + esc(q.point) + '</td><td class="seg">' +
+          ['DONE', 'W', 'C', 'BLANK'].map(function (o) {
+            return '<button data-q="' + esc(q.q) + '" data-o="' + o + '" class="' + o + (outcomes[q.q] === o ? ' on' : '') + '">' + (o === 'DONE' ? '✓' : o === 'BLANK' ? '—' : o) + '</button>';
+          }).join('') + '</td></tr>';
+      }).join('');
+    }
+
+    el('pad').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      outcomes[b.dataset.q] = b.dataset.o;
+      el('apply').disabled = true;
+      drawPad();
+    });
+    el('test').addEventListener('change', function () { outcomes = {}; blanks = {}; drawPad(); });
+
+    function drawPlan(plan) {
+      lastPlan = plan;
+      var html = '<div class="box"><b>' + plan.score.score + '/' + plan.score.total + ' (' + plan.score.pct + '%, ' + plan.score.band + ')</b>';
+      html += '<div>' + plan.exhibit2.changes.filter(function (c) { return c.changed; }).map(function (c) {
+        return esc(c.point) + ': ' + esc(c.before) + ' → <b>' + esc(c.after) + '</b>';
+      }).join('<br>') + '</div>';
+      html += plan.issues.map(function (i) { return '<div class="muted">• ' + esc(i.label) + ': ' + esc(i.detail) + '</div>'; }).join('');
+      html += '<div><b>Suggested:</b> ' + esc(plan.suggestion.label) + '</div></div>';
+      el('result').innerHTML = html;
+      var blankQs = plan.blanks.trailing.concat(plan.blanks.isolated);
+      el('blanks').innerHTML = blankQs.map(function (q) {
+        return '<label>Why was Q' + esc(q) + ' left blank?</label><select data-blank="' + esc(q) + '"><option value="">Choose...</option>' +
+          [['time', 'Ran out of time'], ['didnt_know', "Didn't know how to start"], ['skipped', 'Skipped (strategy)']].map(function (o) {
+            return '<option value="' + o[0] + '"' + (blanks[q] === o[0] ? ' selected' : '') + '>' + o[1] + (plan.blanks.suggestions[q] === o[0] ? ' (suggested)' : '') + '</option>';
+          }).join('') + '</select>';
+      }).join('');
+      el('decision').innerHTML = plan.exhibit3 && plan.score.pct < 75
+        ? '<label><input type="checkbox" id="tutorPass" style="width:auto"> Pass on tutor judgement (*P)</label>' : '';
+      el('apply').disabled = plan.missing.length > 0 || plan.unresolvedBlanks.length > 0;
+    }
+
+    el('blanks').addEventListener('change', function (e) {
+      var q = e.target.dataset.blank;
+      if (e.target.value) blanks[q] = e.target.value; else delete blanks[q];
+      el('apply').disabled = true;
+    });
+
+    el('preview').addEventListener('click', function () {
+      el('error').textContent = '';
+      google.script.run.withSuccessHandler(drawPlan).withFailureHandler(fail).previewMarking(payload());
+    });
+
+    el('apply').addEventListener('click', function () {
+      el('error').textContent = '';
+      el('apply').disabled = true;
+      google.script.run.withSuccessHandler(function (r) {
+        el('result').innerHTML = '<div class="box"><b>Done.</b> Marking Sheet +' + r.exhibit1Rows + ' rows, Progress ' + r.exhibit2Changed +
+          ' cells, ' + esc(r.exhibit3 || 'no Exam Stats change') + ', Exam Log +1.</div>';
+        el('decision').innerHTML = '';
+        el('blanks').innerHTML = '';
+        outcomes = {};
+        blanks = {};
+        drawPad();
+      }).withFailureHandler(fail).applyMarking(payload());
+    });
+
+    google.script.run.withSuccessHandler(function (s) {
+      setup = s;
+      el('student').innerHTML = s.students.map(function (n) { return '<option>' + esc(n) + '</option>'; }).join('');
+      el('test').innerHTML = s.tests.map(function (t) { return '<option value="' + esc(t.id) + '">' + esc(t.name) + '</option>'; }).join('');
+      drawPad();
+    }).withFailureHandler(fail).getSetup();
+  </script>
+</body>
+</html>

@@ -118,7 +118,7 @@ code, .mono { font-family: var(--mono); font-size: 12.5px; }
 
 /* ---------- top bar & shell ---------- */
 .topbar {
-  position: sticky; top: 0; z-index: 20;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 20px;
   background: var(--surface);

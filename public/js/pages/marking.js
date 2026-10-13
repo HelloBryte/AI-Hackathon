@@ -131,7 +131,7 @@ function pad(app) {
       <span class="spacer"></span>
       <span class="faint" style="font-size:12px">Keys: <span class="kbd">D</span> ✓ <span class="kbd">W</span> wrong <span class="kbd">C</span> careless <span class="kbd">B</span> blank <span class="kbd">↑↓</span></span>
     </div>
-    ${padTable(app, paper, test)}
+    <div style="overflow-x:auto">${padTable(app, paper, test)}</div>
 
     <div class="section-title">Exam timing (Scenario C, step 5)</div>
     <div class="grid" style="grid-template-columns:repeat(4,minmax(0,1fr));gap:8px">
