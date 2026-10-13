@@ -4,19 +4,23 @@
 
 ---
 
-## 0:00-0:30 · 问题（Overview 页面，不用点）
+## 0:00-0:40 · 问题（Overview 页面，不用点）
 
-> Our tutor works five hours a day.
+> Hi, I'm Ethan. Our case is the Learning Support Tutor at a maths tutoring centre in Melbourne.
 
-我们的辅导老师每天工作五小时。
+大家好，我是 Ethan。我们的案例是墨尔本一家数学补习中心的辅导老师（Learning Support Tutor）。
 
-> She answers WeChat, in English and Chinese. And she types every marked test into three spreadsheets. When she retypes, the difference between W and C gets lost: a real gap, or a careless slip.
+> Our tutor works five hours a day, from two to seven. Before tutoring starts at four, she has nine WeChat messages, in English and Chinese, and four marked tests to record.
 
-她要用中英文回复微信，还要把每份批改好的试卷录入三张表格。重新录入的时候，W 和 C 的区别就丢了：到底是真的不会，还是粗心。
+这位老师每天工作五小时，从下午两点到七点。四点开始辅导之前，她要处理九条中英文微信消息，还要录入四份批改好的试卷。
 
-> ShiftMate fixes this. Rules write the records. AI reads messages and drafts replies. The tutor decides.
+> The slowest step is step 8. Every marked test is typed into three spreadsheets. When she retypes, the difference between W and C gets lost: a real gap, or a careless slip.
 
-ShiftMate 解决这个问题：记录由规则来写，AI 负责读消息、起草回复，决定由老师来做。
+最慢的是第 8 步：每份批改好的试卷要录入三张表格。重新录入的时候，W 和 C 的区别就丢了：到底是真的不会，还是粗心。
+
+> So we built ShiftMate. Rules write the records. AI reads messages and drafts replies. The tutor decides.
+
+所以我们做了 ShiftMate：记录由规则来写，AI 负责读消息、起草回复，决定由老师来做。
 
 > Let me be the tutor.
 
@@ -24,7 +28,7 @@ ShiftMate 解决这个问题：记录由规则来写，AI 负责读消息、起�
 
 ---
 
-## 0:30-1:20 · 场景一：一份试卷（Mark once）
+## 0:40-1:30 · 场景一：一份试卷（Mark once）
 
 **点左侧菜单 Mark once，再点 Fill demo marks。**
 
@@ -52,7 +56,7 @@ ShiftMate 解决这个问题：记录由规则来写，AI 负责读消息、起�
 
 ---
 
-## 1:20-1:50 · 场景二：一条消息（WeChat inbox）
+## 1:30-2:00 · 场景二：一条消息（WeChat inbox）
 
 **点左侧菜单 WeChat inbox，再点 Norton Cheng**，用鼠标指黄色那行"下周四"。
 
@@ -68,7 +72,7 @@ Norton 的消息中英混合。系统建议给他约一次答疑。"下周四"�
 
 ---
 
-## 1:50-2:00 · 日报（Daily report）
+## 2:00-2:10 · 日报（Daily report）
 
 **点左侧菜单 Daily report。**
 
@@ -78,7 +82,7 @@ Norton 的消息中英混合。系统建议给他约一次答疑。"下周四"�
 
 ---
 
-## 2:00-2:30 · 效果和安全（Impact and safety）
+## 2:10-2:40 · 效果和安全（Impact and safety）
 
 **点左侧菜单 Impact and safety**，指 "~65 min"。
 
@@ -92,7 +96,7 @@ Norton 的消息中英混合。系统建议给他约一次答疑。"下周四"�
 
 ---
 
-## 2:30 · 结尾
+## 2:40 · 结尾
 
 > Mark once. Reply once. Teach more. Thank you.
 

@@ -2,7 +2,7 @@
 
 **One line:** *Mark once. Reply once. Teach more.* Rules write the records. Optional AI reads messages and drafts replies from masked record facts. The tutor decides.
 
-**Shape:** short, simple sentences. About 230 spoken words: roughly 2:30 at a slow, calm pace, including the clicks. Chinese-English version for rehearsal: [PITCH-zh.md](PITCH-zh.md). Stage tips: [DELIVERY.md](DELIVERY.md).
+**Shape:** short, simple sentences. About 260 spoken words: roughly 2:45 at a slow, calm pace, including the clicks. Chinese-English version for rehearsal: [PITCH-zh.md](PITCH-zh.md). Stage tips: [DELIVERY.md](DELIVERY.md).
 
 ---
 
@@ -10,13 +10,13 @@
 
 | Time | Screen | Click | Key words |
 |---|---|---|---|
-| 0:00 | **Overview** | (none) | five hours · three spreadsheets · W and C get lost · **the tutor decides** |
-| 0:30 | Mark once | left menu **Mark once** → **Fill demo marks** | Exhibit 1 test · **W goes down · C stays** · blank → asks me |
-| 1:00 | Mark once | **Didn't know how to start** → **Apply to all three sheets** | I decide · three sheets · note in Chinese |
-| 1:20 | WeChat inbox | left menu **WeChat inbox** → **Norton Cheng** → **Approve, apply and copy reply** | Chinese + English · Q&A · **下周四 is a guess, unticked** · I approve |
-| 1:50 | Daily report | left menu **Daily report** | counts my work by itself |
-| 2:00 | Impact | left menu **Impact and safety** | **about 65 minutes, an estimate** · same sheets · AI optional, names hidden · offline |
-| 2:30 | | | **Mark once. Reply once. Teach more.** |
+| 0:00 | **Overview** | (none) | Hi, I'm Ethan · maths centre · five hours · 9 messages, 4 tests · **step 8: three spreadsheets** · W and C get lost · **the tutor decides** |
+| 0:40 | Mark once | left menu **Mark once** → **Fill demo marks** | Exhibit 1 test · **W goes down · C stays** · blank → asks me |
+| 1:10 | Mark once | **Didn't know how to start** → **Apply to all three sheets** | I decide · three sheets · note in Chinese |
+| 1:30 | WeChat inbox | left menu **WeChat inbox** → **Norton Cheng** → **Approve, apply and copy reply** | Chinese + English · Q&A · **下周四 is a guess, unticked** · I approve |
+| 2:00 | Daily report | left menu **Daily report** | counts my work by itself |
+| 2:10 | Impact | left menu **Impact and safety** | **about 65 minutes, an estimate** · same sheets · AI optional, names hidden · offline |
+| 2:40 | | | **Mark once. Reply once. Teach more.** |
 
 ---
 
@@ -30,17 +30,19 @@
 
 ## The script
 
-### 0:00-0:30 · The problem (Overview)
+### 0:00-0:40 · The problem (Overview)
 
-> Our tutor works five hours a day.
+> Hi, I'm Ethan. Our case is the Learning Support Tutor at a maths tutoring centre in Melbourne.
 >
-> She answers WeChat, in English and Chinese. And she types every marked test into three spreadsheets. When she retypes, the difference between W and C gets lost: a real gap, or a careless slip.
+> Our tutor works five hours a day, from two to seven. Before tutoring starts at four, she has nine WeChat messages, in English and Chinese, and four marked tests to record.
 >
-> ShiftMate fixes this. Rules write the records. AI reads messages and drafts replies. The tutor decides.
+> The slowest step is step 8. Every marked test is typed into three spreadsheets. When she retypes, the difference between W and C gets lost: a real gap, or a careless slip.
+>
+> So we built ShiftMate. Rules write the records. AI reads messages and drafts replies. The tutor decides.
 >
 > Let me be the tutor.
 
-### 0:30-1:20 · Scene 1: one test (Mark once)
+### 0:40-1:30 · Scene 1: one test (Mark once)
 
 Click **Mark once** in the left menu. Click **Fill demo marks**.
 > This is the Exhibit 1 test. I enter the marks once.
@@ -54,7 +56,7 @@ Click **Didn't know how to start**.
 Click **Apply to all three sheets**.
 > One click updates all three sheets, and writes a note for his mum, in Chinese.
 
-### 1:20-1:50 · Scene 2: one message (WeChat inbox)
+### 1:30-2:00 · Scene 2: one message (WeChat inbox)
 
 Click **WeChat inbox** in the left menu, then **Norton Cheng**. Point at the yellow line about 下周四.
 > Norton mixes Chinese and English. It suggests a Q&A booking. "下周四" is only a guess, so the date stays unticked, and the reply asks him to check.
@@ -62,19 +64,19 @@ Click **WeChat inbox** in the left menu, then **Norton Cheng**. Point at the yel
 Click **Approve, apply and copy reply**.
 > I approve, and paste it into WeChat.
 
-### 1:50-2:00 · The report
+### 2:00-2:10 · The report
 
 Click **Daily report**.
 > The daily report counts my work by itself.
 
-### 2:00-2:30 · Impact
+### 2:10-2:40 · Impact
 
 Click **Impact and safety**. Point at "~65 min".
 > We estimate it saves about 65 minutes per shift. You can change every number here.
 >
 > It uses the same three sheets, and copy and paste into WeChat. AI is optional, and student names are hidden. Tonight it runs offline, so it does not need Wi-Fi.
 
-### 2:30 · Close
+### 2:40 · Close
 
 > Mark once. Reply once. Teach more. Thank you.
 
@@ -122,4 +124,4 @@ Repeat the question. Answer in one or two sentences. Then stop.
 | Prototype quality (20) | Live demo on data modelled on Exhibits 1-3; messy cases: a blank answer, a mixed Chinese-English message, a guessed date |
 | Impact (15) | ~65 min a shift on an editable calculator (an estimate); benefits to students and parents |
 | Responsible AI (10) | Tutor approves everything; guessed dates unticked; reply-vs-action check; names masked; offline fallback |
-| Pitch (5) | This script, about 2:30 |
+| Pitch (5) | This script, about 2:45 |
