@@ -45,7 +45,7 @@ function bottleneck() {
         ${sheetBox('Ex 2', 'Progress Sheet', 're-coloured cell by cell')}
         ${sheetBox('Ex 3', 'Exam Statistics', 'score and band')}
       </div>
-      <p class="ov-foot">About 6 minutes a paper. A careless slip and a real gap look the same in the records.</p>
+      <p class="ov-foot">About 6 minutes a paper. The Progress Sheet ends up with no difference between a careless slip and a real gap.</p>
     </div>
     <div class="ov-side ov-new">
       <div class="ov-side-head"><span class="chip tone-ok">With ShiftMate</span><span class="muted">Mark once, confirm once</span></div>
@@ -111,7 +111,7 @@ export function render(app) {
       <h2>Who does what</h2>
       <div class="ov-roles">
         <div class="ov-role"><span class="chip">Rules</span><strong>Keep the records</strong><p>Scores, mastery colours, attempt slots, SAC readiness and the daily counts. Fixed, auditable, no AI.</p></div>
-        <div class="ov-role"><span class="chip tone-info">AI (optional)</span><strong>Draft the words</strong><p>Reads each WeChat message and drafts a reply in the sender's language from the record facts it needs. Student, parent and school names are masked before anything is sent.</p></div>
+        <div class="ov-role"><span class="chip tone-info">AI (optional)</span><strong>Draft the words</strong><p>Reads each WeChat message and drafts a reply in the sender's language from a short fact sheet of the student's record. Student, parent and school names are masked before anything is sent.</p></div>
         <div class="ov-role"><span class="chip tone-ok">Tutor</span><strong>Make every call</strong><p>Why a question was blank, pass or Retest, passing a Demo, and every message that goes out.</p></div>
       </div>
     </section>`;

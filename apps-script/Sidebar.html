@@ -73,13 +73,23 @@
       var b = e.target.closest('button');
       if (!b) return;
       outcomes[b.dataset.q] = b.dataset.o;
-      el('apply').disabled = true;
+      invalidate();
       drawPad();
     });
-    el('test').addEventListener('change', function () { outcomes = {}; blanks = {}; drawPad(); });
+    // Anything that changes the input makes the preview stale: Apply waits for a new preview.
+    function invalidate() {
+      lastPlan = null;
+      el('apply').disabled = true;
+      el('result').innerHTML = '';
+      el('decision').innerHTML = '';
+    }
+    el('test').addEventListener('change', function () { outcomes = {}; blanks = {}; el('blanks').innerHTML = ''; invalidate(); drawPad(); });
+    el('student').addEventListener('change', function () { outcomes = {}; blanks = {}; el('blanks').innerHTML = ''; invalidate(); drawPad(); });
+    ['start', 'end1', 'end2', 'checks'].forEach(function (id) { el(id).addEventListener('input', invalidate); });
 
     function drawPlan(plan) {
       lastPlan = plan;
+      lastPlan.student = el('student').value;
       var html = '<div class="box"><b>' + plan.score.score + '/' + plan.score.total + ' (' + plan.score.pct + '%, ' + plan.score.band + ')</b>';
       html += '<div>' + plan.exhibit2.changes.filter(function (c) { return c.changed; }).map(function (c) {
         return esc(c.point) + ': ' + esc(c.before) + ' → <b>' + esc(c.after) + '</b>';
@@ -102,6 +112,7 @@
     el('blanks').addEventListener('change', function (e) {
       var q = e.target.dataset.blank;
       if (e.target.value) blanks[q] = e.target.value; else delete blanks[q];
+      lastPlan = null;
       el('apply').disabled = true;
     });
 
@@ -113,6 +124,8 @@
     el('apply').addEventListener('click', function () {
       el('error').textContent = '';
       el('apply').disabled = true;
+      var body = payload();
+      body.previewed = lastPlan ? { student: lastPlan.student, testId: lastPlan.testId } : null;
       google.script.run.withSuccessHandler(function (r) {
         el('result').innerHTML = '<div class="box"><b>Done.</b> Marking Sheet +' + r.exhibit1Rows + ' rows, Progress ' + r.exhibit2Changed +
           ' cells, ' + esc(r.exhibit3 || 'no Exam Stats change') + ', Exam Log +1.</div>';
@@ -121,7 +134,7 @@
         outcomes = {};
         blanks = {};
         drawPad();
-      }).withFailureHandler(fail).applyMarking(payload());
+      }).withFailureHandler(fail).applyMarking(body);
     });
 
     google.script.run.withSuccessHandler(function (s) {

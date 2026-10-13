@@ -182,6 +182,9 @@ function applyMarking(payload) {
   try {
     // 1. Every check first. Nothing is written until all of them pass.
     checkSchema_();
+    if (payload.previewed && (payload.previewed.student !== payload.student || payload.previewed.testId !== payload.testId)) {
+      throw new Error('The preview on screen is for ' + payload.previewed.student + '. Preview again before applying. Nothing was written.');
+    }
     var p = plan_(payload);
     var plan = p.plan;
     if (plan.missing.length) throw new Error('Not marked yet: Q' + plan.missing.join(', Q'));
@@ -195,6 +198,14 @@ function applyMarking(payload) {
     var marking = sheet_(TABS.marking);
     var progress = sheet_(TABS.progress);
     var stats = sheet_(TABS.stats);
+    if (plan.exhibit3) {
+      // The column is computed from the Module and attempt, so its header must say exactly that.
+      var wantHeader = 'M' + p.test.module + ' ' + plan.exhibit3.slot;
+      var gotHeader = String(stats.getRange(1, statsCell_(p.test.module, 'ABCD'.indexOf(plan.exhibit3.slot))).getValue()).trim();
+      if (gotHeader !== wantHeader) {
+        throw new Error('Exam Stats column for this attempt should be headed "' + wantHeader + '" but is "' + gotHeader + '". Nothing was written.');
+      }
+    }
     var log = sheet_(TABS.log);
     var decision = payload.decision || {};
     var tutorPass = !!decision.tutorPass && plan.score.pct < PASS_PCT;

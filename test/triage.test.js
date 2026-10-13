@@ -121,3 +121,26 @@ test('approval catches a reply that promises an unticked action', () => {
   const noNotice = online.actions.map((a, i) => i).filter((i) => online.actions[i].type !== 'notify_teacher');
   assert.deepEqual(triage.replyActionWarnings(online.draft, online.actions, noNotice), [], 'naming the teacher is not a claim');
 });
+
+test('maths frustration is not a complaint; service complaints are', () => {
+  assert.notEqual(triage.detectIntents("I'm frustrated with this integral, how do you do q3?", 'student')[0], 'complaint');
+  assert.equal(triage.detectIntents('Very disappointed with the service this term', 'parent')[0], 'complaint');
+  assert.equal(triage.detectIntents('我对这次的安排很不满意', 'parent')[0], 'complaint');
+});
+
+test('a request about another day never claims today was changed', () => {
+  const state = fresh();
+  const m = { id: 'x', studentId: 'phoenix', relation: 'student', text: 'I cannot attend tomorrow, I have a school camp' };
+  const t = triage.triageRules(m, views.messageContext(state, m));
+  assert.equal(t.primary, 'leave');
+  assert.doesNotMatch(t.draft, /today/i);
+  assert.ok(!t.actions.some((a) => a.type === 'set_attendance'));
+  assert.ok(t.actions.some((a) => a.type === 'notify_teacher' && /2026-10-14/.test(a.text)));
+});
+
+test('the claim check stays inside one sentence', () => {
+  const t = run(fresh(), 'm6');
+  const qaOnly = t.actions.map((a, i) => i).filter((i) => t.actions[i].type !== 'record_sac');
+  assert.deepEqual(triage.replyActionWarnings('你的SAC是10月22日对吗？Q&A已经登记了。', t.actions, qaOnly), []);
+  assert.equal(triage.replyActionWarnings('SAC在10月22日，我也记下了。', t.actions, qaOnly).length, 1);
+});

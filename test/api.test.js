@@ -137,3 +137,12 @@ test('a refused marking writes nothing to any sheet', async () => {
   const bad = await handle('POST', '/api/marking/apply', { ...PHOENIX, blankResolutions: { 8: 'aliens' } });
   assert.equal(bad.status, 400);
 });
+
+test('a failing score cannot be saved as "move on" without a tutor pass', async () => {
+  const { store, handle } = setup();
+  const before = store.state.markingRecords.length;
+  const res = await handle('POST', '/api/marking/apply', { ...PHOENIX, blankResolutions: { 8: 'time' }, decision: { action: 'move_on' } });
+  assert.equal(res.status, 400);
+  assert.match(res.body.error, /below the 75% pass mark/);
+  assert.equal(store.state.markingRecords.length, before);
+});

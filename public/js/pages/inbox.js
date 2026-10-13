@@ -118,7 +118,7 @@ function triagePanel(app, m) {
         : html`<p class="muted">Nothing. This draft was made by the offline rules engine on this computer.</p>`}
     </details>
 
-    ${local.mismatch[m.id] ? html`<div class="callout tone-warn" style="margin-top:12px"><span class="icon">!</span><div>${local.mismatch[m.id]}</div></div>` : ''}
+    ${local.mismatch[m.id] ? html`<div class="callout tone-warn" id="mismatch-warning" style="margin-top:12px"><span class="icon">!</span><div>${local.mismatch[m.id]}</div></div>` : ''}
     <div class="row sticky-actions">
       <button class="btn btn-primary" data-action="approve">${local.mismatch[m.id] ? 'Approve anyway' : 'Approve, apply and copy reply'}</button>
       <button class="btn" data-action="redraft">Redraft</button>
@@ -217,7 +217,13 @@ export async function on(type, action, el, event, app) {
 
   if (type === 'input' && action === 'edit-draft') {
     local.drafts[id] = el.value;
-    if (local.mismatch[id]) delete local.mismatch[id];
+    if (local.mismatch[id]) {
+      delete local.mismatch[id];
+      const warn = document.getElementById('mismatch-warning');
+      if (warn) warn.remove();
+      const btn = document.querySelector('#inbox-detail [data-action="approve"]');
+      if (btn) btn.textContent = 'Approve, apply and copy reply';
+    }
     return;
   }
   if (type === 'change' && action === 'toggle-action') {
@@ -226,7 +232,10 @@ export async function on(type, action, el, event, app) {
     if (el.checked) set.add(i);
     else set.delete(i);
     local.checks[id] = set;
-    if (local.mismatch[id]) delete local.mismatch[id];
+    if (local.mismatch[id]) {
+      delete local.mismatch[id];
+      app.refresh();
+    }
     return;
   }
   if (type === 'change' && action === 'recategorise' && el.value) {

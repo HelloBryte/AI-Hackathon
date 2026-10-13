@@ -158,3 +158,20 @@ test('the add-on checks everything before writing anything', () => {
   assert.throws(() => fresh.context.applyMarking(payload), /column 7 should be "Outcome"/);
   assert.equal(fresh.sheets['Marking Sheet'].cells.length, rows);
 });
+
+test('swapped attempt headers and a stale preview are refused before writing', () => {
+  const { context, sheets } = loadAddon();
+  context.setupDemo();
+  const payload = { student: 'Phoenix Hu', testId: 'MT8A', outcomes: EXHIBIT1, blankResolutions: { 8: 'time' } };
+  const header = sheets['Exam Stats'].cells[0];
+  const a = header.indexOf('M8 A');
+  [header[a], header[a + 1]] = [header[a + 1], header[a]];
+  const rows = sheets['Marking Sheet'].cells.length;
+  assert.throws(() => context.applyMarking(payload), /should be headed "M8 A" but is "M8 B"/);
+  assert.equal(sheets['Marking Sheet'].cells.length, rows);
+
+  const other = loadAddon();
+  other.context.setupDemo();
+  assert.throws(() => other.context.applyMarking({ ...payload, student: 'Justin Dong', previewed: { student: 'Phoenix Hu', testId: 'MT8A' } }), /preview on screen is for Phoenix Hu/);
+  assert.equal(other.sheets['Marking Sheet'].cells.length, 1);
+});

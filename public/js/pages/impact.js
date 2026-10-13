@@ -3,6 +3,11 @@ import {
   ROWS, SHIFT_MIN, SHIFTS_PER_WEEK, PRICE, EST_TOKENS, values, totals, approxMinutes,
 } from '../impact-model.js';
 
+// Exact minutes in the table (65.5, not 66), so the rows add up to the total.
+function mins(x) {
+  return Number.isInteger(x) ? String(x) : x.toFixed(1);
+}
+
 function money(x) {
   return `US$${x < 1 ? x.toFixed(3) : x.toFixed(2)}`;
 }
@@ -19,10 +24,10 @@ function calculator() {
         <td class="num"><input type="number" min="0" step="1" value="${v.vol}" data-action="val" data-id="${r.id}" data-k="vol" aria-label="${r.unit} per shift"> <span class="faint" style="font-size:11px">${r.unit}</span></td>
         <td class="num"><input type="number" min="0" step="0.5" value="${v.manual}" data-action="val" data-id="${r.id}" data-k="manual" aria-label="Minutes by hand"></td>
         <td class="num"><input type="number" min="0" step="0.5" value="${v.withSm}" data-action="val" data-id="${r.id}" data-k="withSm" aria-label="Minutes with ShiftMate"></td>
-        <td class="num"><strong>${Math.round(v.vol * (v.manual - v.withSm))}</strong> min</td>
+        <td class="num"><strong>${mins(v.vol * (v.manual - v.withSm))}</strong> min</td>
       </tr>`;
     })}
-      <tr><td></td><td><strong>Total per shift</strong></td><td></td><td class="num"><strong>${Math.round(t.manual)}</strong> min</td><td class="num"><strong>${Math.round(t.withSm)}</strong> min</td><td class="num"><strong>${Math.round(t.saved)}</strong> min</td></tr>
+      <tr><td></td><td><strong>Total per shift</strong></td><td></td><td class="num"><strong>${mins(t.manual)}</strong> min</td><td class="num"><strong>${mins(t.withSm)}</strong> min</td><td class="num"><strong>${mins(t.saved)}</strong> min</td></tr>
     </tbody>
   </table>`;
 }
@@ -97,6 +102,16 @@ function auditCard(app) {
   </section>`;
 }
 
+function whoGetsWhat() {
+  return html`<h2>Who gets what</h2>
+    <ul class="list" style="margin-top:8px">
+      <li><strong>Students:</strong> an estimated ~${approxMinutes(totals().saved)} more minutes of on-site help a shift; feedback that separates knowledge gaps from careless slips; SAC gaps spotted a week ahead.</li>
+      <li><strong>Parents:</strong> replies in minutes, in Chinese or English, built from the real records.</li>
+      <li><strong>Tutor:</strong> no triple entry; one place for the day; the report writes itself.</li>
+      <li><strong>Manager:</strong> consistent daily figures and a follow-up list; an audit trail of every AI suggestion.</li>
+    </ul>`;
+}
+
 export function render(app) {
   return html`
     <div class="page-head">
@@ -111,20 +126,12 @@ export function render(app) {
       <div class="card-head"><h2>Time returned to students</h2><span class="card-sub">Edit any number: the totals update</span></div>
       <div id="impact-head">${headline()}</div>
       <div class="table-wrap" style="margin-top:16px" id="impact-table">${calculator()}</div>
-      <p class="card-sub" style="margin-top:8px">Estimate, not a measurement. Volumes are today's demo data (7 lessons, 9 messages by 14:30, 4 papers waiting); minutes per task are our own estimates. Marking the paper itself is unchanged and not counted. Week 1 of the pilot replaces these estimates with timed measurements.</p>
+      <p class="card-sub" style="margin-top:8px">Estimate, not a measurement. It covers admin (phases 2, 3 and 5) and some lesson preparation (exam review and SAC checks in phase 4). Volumes are today's demo data (7 lessons, 9 messages by 14:30, 4 papers waiting); minutes per task are our own estimates. Marking the paper itself is unchanged and not counted. Week 1 of the pilot replaces these estimates with timed measurements.</p>
     </section>
 
     <div class="grid grid-2" style="margin-top:14px;align-items:start">
-      <section class="card">
-        <h2>Who gets what</h2>
-        <ul class="list" style="margin-top:8px">
-          <li><strong>Students:</strong> an estimated ~${approxMinutes(totals().saved)} more minutes of on-site Q&A a shift; feedback that separates knowledge gaps from careless slips; SAC gaps spotted a week ahead.</li>
-          <li><strong>Parents:</strong> replies in minutes, in Chinese or English, quoting the real records.</li>
-          <li><strong>Tutor:</strong> no triple entry; one place for the day; the report writes itself.</li>
-          <li><strong>Manager:</strong> consistent daily figures and a follow-up list; an audit trail of every AI suggestion.</li>
-        </ul>
-      </section>
-      ${costCard(app)}
+      <section class="card" id="impact-who">${whoGetsWhat()}</section>
+      <div id="impact-cost">${costCard(app)}</div>
     </div>
 
     <section class="card" style="margin-top:14px">
@@ -140,7 +147,7 @@ export function render(app) {
         <h2>Student data (most are minors)</h2>
         <ul class="list" style="margin-top:8px">
           <li>Rules calculate and write every record. No AI writes a grade, a mastery colour or a statistic.</li>
-          <li>Optional AI drafting reads the WeChat message plus the few record facts a reply may need (for example a test score or the next SAC date). Student, parent and school names are replaced by placeholders first, and each draft shows exactly what was sent.</li>
+          <li>Optional AI drafting reads the WeChat message plus a short fact sheet from that student's record (today's lesson, recent test results, course progress, any SAC soon). Student, parent and school names are replaced by placeholders first, and each draft shows exactly what was sent.</li>
           <li>Records stay in the centre's own Google Workspace (pilot) or on the centre's PC (this demo).</li>
           <li>No chatbot talks to students. Every message out is the tutor's.</li>
           <li>One switch (SHIFTMATE_AI=off) runs everything offline.</li>
@@ -179,7 +186,7 @@ export function render(app) {
     <div style="margin-top:14px">${auditCard(app)}</div>`;
 }
 
-export function on(type, action, el) {
+export function on(type, action, el, event, app) {
   if (type !== 'input' || action !== 'val') return;
   const v = Number(el.value);
   if (!Number.isFinite(v) || v < 0) return;
@@ -195,4 +202,7 @@ export function on(type, action, el) {
     if (rows[i]) rows[i].lastElementChild.innerHTML = last.innerHTML;
     if (i === ROWS.length) rows[i].innerHTML = tr.innerHTML;
   });
+  // Every card that depends on these numbers follows the change.
+  document.getElementById('impact-who').innerHTML = String(whoGetsWhat());
+  document.getElementById('impact-cost').innerHTML = String(costCard(app));
 }

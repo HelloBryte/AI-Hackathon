@@ -14,6 +14,7 @@ let local = fresh(null);
 function fresh(paper) {
   return {
     paperId: paper ? paper.id : null,
+    version: 0,
     outcomes: {},
     partial: {},
     timing: paper ? { ...paper.timing } : {},
@@ -359,7 +360,21 @@ function requestBody() {
 
 let timer = null;
 let previewSeq = 0;
+
+// Any change to the marks makes the preview on screen stale: Apply is
+// disabled at once and only re-enabled by a preview of the same input.
+function markStale() {
+  const btn = document.querySelector('#mk-preview [data-action="apply"]');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Updating preview...';
+  }
+}
+
 function schedulePreview(app) {
+  local.version += 1;
+  const version = local.version;
+  markStale();
   clearTimeout(timer);
   timer = setTimeout(async () => {
     const paper = currentPaper(app);
@@ -375,7 +390,8 @@ function schedulePreview(app) {
     try {
       const pv = await app.api.post('/api/marking/preview', requestBody());
       // Ignore a late answer for an older entry or a different paper.
-      if (seq !== previewSeq || paperId !== local.paperId) return;
+      if (seq !== previewSeq || paperId !== local.paperId || version !== local.version) return;
+      pv.version = version;
       local.preview = pv;
       if (!local.action) local.action = null;
       rerenderPreview(app);
@@ -492,7 +508,8 @@ export async function on(type, action, el, event, app) {
     rerenderPreview(app);
   } else if (action === 'apply') {
     const plan = local.preview && local.preview.plan;
-    if (!plan || !paper || local.preview.student.id !== paper.studentId || local.preview.test.id !== paper.testId) {
+    if (!plan || !paper || local.preview.version !== local.version
+      || local.preview.student.id !== paper.studentId || local.preview.test.id !== paper.testId) {
       app.toast('The preview is still updating. Try again in a moment.', 'bad');
       return;
     }

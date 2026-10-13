@@ -1,6 +1,6 @@
 # Submission email (template)
 
-Fill in the address and send before **7:00 pm**. Share the hosted demo first (Share menu on the page) so the judges can open it.
+Fill in the address and send before **7:00 pm**.
 
 ---
 
@@ -23,9 +23,9 @@ Please find our submission for *Automating the Learning Support Tutor's Workday*
 **Links**
 
 - Code: https://github.com/HelloBryte/AI-Hackathon
-- Live demo: _(hosted link, after sharing)_
+- Live demo (opens in any browser, no install): https://hellobryte.github.io/AI-Hackathon/dist/shiftmate.html
 - Offline demo: download `dist/shiftmate.html` from the repo and open it in any browser
-- Pitch notes and rubric map: `docs/PITCH.md`
+- Pitch notes and rubric map: https://github.com/HelloBryte/AI-Hackathon/blob/claude/gifted-franklin-344ddo/docs/PITCH.md
 
 Thanks,
 Ethan
